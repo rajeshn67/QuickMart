@@ -69,8 +69,8 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="person" size={40} color="#4CAF50" />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{user?.fullName}</Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
+            <Text style={styles.userName}>{user?.fullName || "User"}</Text>
+            <Text style={styles.userEmail}>{user?.email || "No email"}</Text>
           </View>
         </View>
 

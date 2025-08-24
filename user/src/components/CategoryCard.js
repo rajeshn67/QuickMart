@@ -1,9 +1,17 @@
 import { Text, Image, TouchableOpacity, StyleSheet } from "react-native"
 
 export default function CategoryCard({ category, onPress }) {
+  const handleImageError = () => {
+    console.log("Image failed to load for category:", category.name)
+  }
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Image source={{ uri: category.image }} style={styles.image} />
+      <Image 
+        source={{ uri: category.image }} 
+        style={styles.image} 
+        onError={handleImageError}
+      />
       <Text style={styles.name}>{category.name}</Text>
     </TouchableOpacity>
   )

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import ProductCard from "../components/ProductCard"
-import { getProductsByCategory } from "../services/api"
+import { productsAPI } from "../services/api"
 
 const CategoryProductsScreen = ({ route, navigation }) => {
   const { category } = route.params
@@ -17,8 +17,8 @@ const CategoryProductsScreen = ({ route, navigation }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await getProductsByCategory(category._id)
-      setProducts(response.data)
+      const response = await productsAPI.getProducts({ category: category._id })
+      setProducts(response.products || [])
     } catch (error) {
       Alert.alert("Error", "Failed to load products")
     } finally {
@@ -27,7 +27,7 @@ const CategoryProductsScreen = ({ route, navigation }) => {
   }
 
   const renderProduct = ({ item }) => (
-    <ProductCard product={item} onPress={() => navigation.navigate("ProductDetail", { productId: item._id })} />
+    <ProductCard product={item} onPress={() => navigation.navigate("ProductDetail", { product: item })} />
   )
 
   if (loading) {

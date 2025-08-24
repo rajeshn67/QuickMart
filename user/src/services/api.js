@@ -5,7 +5,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000/api"
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
 })
 
 // Add auth token to requests
@@ -16,6 +16,22 @@ api.interceptors.request.use(async (config) => {
   }
   return config
 })
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout:', error)
+      throw new Error('Request timeout. Please check your internet connection.')
+    }
+    if (!error.response) {
+      console.error('Network error:', error)
+      throw new Error('Network error. Please check your internet connection.')
+    }
+    throw error
+  }
+)
 
 // Auth API
 export const authAPI = {

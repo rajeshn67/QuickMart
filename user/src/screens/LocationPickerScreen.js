@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, Linking } from "react-native"
 import MapView, { Marker } from "react-native-maps"
 import * as Location from "expo-location"
 import { Ionicons } from "@expo/vector-icons"
@@ -27,11 +27,22 @@ export default function LocationPickerScreen({ navigation, route }) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== "granted") {
-        Alert.alert("Permission Denied", "Location permission is required to select delivery address")
+        Alert.alert(
+          "Permission Denied", 
+          "Location permission is required to select delivery address. Please enable location access in your device settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Settings", onPress: () => Linking.openSettings() }
+          ]
+        )
         return
       }
 
-      const location = await Location.getCurrentPositionAsync({})
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        timeout: 10000,
+      })
+      
       const newRegion = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
@@ -46,18 +57,27 @@ export default function LocationPickerScreen({ navigation, route }) {
       })
 
       // Get address from coordinates
-      const addressResult = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      })
+      try {
+        const addressResult = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        })
 
-      if (addressResult.length > 0) {
-        const addr = addressResult[0]
-        setAddress(`${addr.street || ""} ${addr.city || ""} ${addr.region || ""} ${addr.postalCode || ""}`.trim())
+        if (addressResult.length > 0) {
+          const addr = addressResult[0]
+          setAddress(`${addr.street || ""} ${addr.city || ""} ${addr.region || ""} ${addr.postalCode || ""}`.trim())
+        }
+      } catch (addressError) {
+        console.error("Error getting address:", addressError)
+        // Continue without address, user can enter manually
       }
     } catch (error) {
       console.error("Error getting location:", error)
-      Alert.alert("Error", "Failed to get current location")
+      if (error.code === 'UNAVAILABLE') {
+        Alert.alert("Location Unavailable", "Unable to get your current location. Please select a location on the map manually.")
+      } else {
+        Alert.alert("Error", "Failed to get current location. Please select a location on the map manually.")
+      }
     } finally {
       setLoading(false)
     }

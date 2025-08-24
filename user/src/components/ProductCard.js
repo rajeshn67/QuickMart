@@ -9,9 +9,18 @@ export default function ProductCard({ product, onPress }) {
     addToCart(product, 1)
   }
 
+  const handleImageError = () => {
+    // Could set a default image here
+    console.log("Image failed to load for product:", product.name)
+  }
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Image source={{ uri: product.image }} style={styles.image} />
+      <Image 
+        source={{ uri: product.image }} 
+        style={styles.image} 
+        onError={handleImageError}
+      />
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={2}>
           {product.name}

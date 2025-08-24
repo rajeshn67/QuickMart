@@ -27,46 +27,102 @@ export const AuthProvider = ({ children }) => {
       const token = await AsyncStorage.getItem("userToken")
       console.log("Token found in storage:", !!token)
       if (token) {
-        const userData = await authAPI.getProfile()
-        console.log("User data loaded:", userData)
-        setUser(userData.user)
+        try {
+          const userData = await authAPI.getProfile()
+          console.log("User data loaded:", userData)
+          setUser(userData.user)
+        } catch (error) {
+          console.error("Error loading user profile:", error)
+          // Only remove token if it's an authentication error
+          if (error.response?.status === 401) {
+            await AsyncStorage.removeItem("userToken")
+            console.log("Token removed due to 401 error")
+          }
+        }
       }
     } catch (error) {
-      console.error("Error loading user:", error)
-      // Only remove token if there's an actual error, not just if user data can't be loaded
-      if (error.response?.status === 401) {
-        await AsyncStorage.removeItem("userToken")
-      }
+      console.error("Error in loadUser:", error)
     }
   }
 
   const login = async (email, password) => {
+    if (!email || !password) {
+      return { success: false, error: "Email and password are required" }
+    }
+
+    if (!email.includes("@")) {
+      return { success: false, error: "Please enter a valid email address" }
+    }
+
     setLoading(true)
     try {
       console.log("Attempting login with:", email)
       const response = await authAPI.login(email, password)
       console.log("Login response:", response)
+      
+      if (!response.token || !response.user) {
+        return { success: false, error: "Invalid response from server" }
+      }
+      
       await AsyncStorage.setItem("userToken", response.token)
       setUser(response.user)
       console.log("User set in context:", response.user)
       return { success: true }
     } catch (error) {
       console.error("Login error:", error)
-      return { success: false, error: error.response?.data?.message || "Login failed" }
+      let errorMessage = "Login failed"
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
   }
 
   const register = async (fullName, email, password) => {
+    if (!fullName || !email || !password) {
+      return { success: false, error: "All fields are required" }
+    }
+
+    if (fullName.trim().length < 2) {
+      return { success: false, error: "Full name must be at least 2 characters" }
+    }
+
+    if (!email.includes("@")) {
+      return { success: false, error: "Please enter a valid email address" }
+    }
+
+    if (password.length < 6) {
+      return { success: false, error: "Password must be at least 6 characters" }
+    }
+
     setLoading(true)
     try {
       const response = await authAPI.register(fullName, email, password)
+      
+      if (!response.token || !response.user) {
+        return { success: false, error: "Invalid response from server" }
+      }
+      
       await AsyncStorage.setItem("userToken", response.token)
       setUser(response.user)
       return { success: true }
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || "Registration failed" }
+      console.error("Registration error:", error)
+      let errorMessage = "Registration failed"
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
@@ -76,8 +132,11 @@ export const AuthProvider = ({ children }) => {
     try {
       await AsyncStorage.removeItem("userToken")
       setUser(null)
+      console.log("User logged out successfully")
     } catch (error) {
       console.error("Error logging out:", error)
+      // Even if there's an error, clear the user state
+      setUser(null)
     }
   }
 

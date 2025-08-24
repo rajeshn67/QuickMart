@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl } from "react-native"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useAuth } from "../context/AuthContext"
@@ -15,6 +15,7 @@ export default function HomeScreen({ navigation }) {
   const [categories, setCategories] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     loadData()
@@ -22,22 +23,26 @@ export default function HomeScreen({ navigation }) {
 
   const loadData = async () => {
     setLoading(true)
+    setError(null)
     try {
       const [categoriesData, productsData] = await Promise.all([
         categoriesAPI.getCategories(),
         productsAPI.getProducts({ limit: 10 }),
       ])
-      setCategories(categoriesData)
-      setFeaturedProducts(productsData.products)
+      setCategories(categoriesData || [])
+      setFeaturedProducts(productsData?.products || [])
     } catch (error) {
       console.error("Error loading data:", error)
+      setError(error.message || "Failed to load data")
     } finally {
       setLoading(false)
     }
   }
 
   const handleSearch = () => {
-    navigation.navigate("Search", { query: searchQuery })
+    if (searchQuery.trim()) {
+      navigation.navigate("Search", { query: searchQuery.trim() })
+    }
   }
 
   return (
@@ -50,7 +55,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Good Morning</Text>
-            <Text style={styles.userName}>{user?.fullName}</Text>
+            <Text style={styles.userName}>{user?.fullName || "User"}</Text>
           </View>
           <TouchableOpacity style={styles.locationButton}>
             <Ionicons name="location-outline" size={20} color="#4CAF50" />
@@ -72,59 +77,83 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Categories */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Categories</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
+        {/* Error Display */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={loadData}>
+              <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={categories}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-              <CategoryCard
-                category={item}
-                onPress={() => navigation.navigate("CategoryProducts", { category: item })}
-              />
-            )}
-            contentContainerStyle={styles.categoriesList}
-          />
-        </View>
+        )}
+
+        {/* Loading State */}
+        {loading && !error && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Loading...</Text>
+          </View>
+        )}
+
+        {/* Categories */}
+        {!error && !loading && categories.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Categories</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={categories}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <CategoryCard
+                  category={item}
+                  onPress={() => navigation.navigate("CategoryProducts", { category: item })}
+                />
+              )}
+              contentContainerStyle={styles.categoriesList}
+            />
+          </View>
+        )}
 
         {/* Featured Products */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Products</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
-            </TouchableOpacity>
+        {!error && !loading && featuredProducts.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Featured Products</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={featuredProducts}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <ProductCard product={item} onPress={() => navigation.navigate("ProductDetail", { product: item })} />
+              )}
+              contentContainerStyle={styles.productsList}
+            />
           </View>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={featuredProducts}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-              <ProductCard product={item} onPress={() => navigation.navigate("ProductDetail", { product: item })} />
-            )}
-            contentContainerStyle={styles.productsList}
-          />
-        </View>
+        )}
 
         {/* Exclusive Offer Banner */}
-        <View style={styles.bannerContainer}>
-          <View style={styles.banner}>
-            <Text style={styles.bannerTitle}>Exclusive Offer</Text>
-            <Text style={styles.bannerSubtitle}>Get 20% off on fresh vegetables</Text>
-            <TouchableOpacity style={styles.bannerButton}>
-              <Text style={styles.bannerButtonText}>Shop Now</Text>
-            </TouchableOpacity>
+        {!error && !loading && (
+          <View style={styles.bannerContainer}>
+            <View style={styles.banner}>
+              <Text style={styles.bannerTitle}>Exclusive Offer</Text>
+              <Text style={styles.bannerSubtitle}>Get 20% off on fresh vegetables</Text>
+              <TouchableOpacity style={styles.bannerButton}>
+                <Text style={styles.bannerButtonText}>Shop Now</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -238,5 +267,40 @@ const styles = StyleSheet.create({
   bannerButtonText: {
     color: "#4CAF50",
     fontWeight: "600",
+  },
+  errorContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffebee",
+    borderRadius: 8,
+    marginBottom: 24,
+    alignItems: "center",
+  },
+  errorText: {
+    color: "#d32f2f",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  retryButton: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#666",
   },
 })

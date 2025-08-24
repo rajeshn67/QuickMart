@@ -24,10 +24,13 @@ export const CartProvider = ({ children }) => {
     try {
       const savedCart = await AsyncStorage.getItem("cart")
       if (savedCart) {
-        setCartItems(JSON.parse(savedCart))
+        const parsedCart = JSON.parse(savedCart)
+        setCartItems(parsedCart)
       }
     } catch (error) {
       console.error("Error loading cart:", error)
+      // Reset cart if there's an error loading
+      setCartItems([])
     }
   }
 
@@ -36,10 +39,21 @@ export const CartProvider = ({ children }) => {
       await AsyncStorage.setItem("cart", JSON.stringify(items))
     } catch (error) {
       console.error("Error saving cart:", error)
+      // Could show a toast or alert here
     }
   }
 
   const addToCart = (product, quantity = 1) => {
+    if (!product || !product._id) {
+      console.error("Invalid product data:", product)
+      return
+    }
+
+    if (quantity <= 0) {
+      console.error("Invalid quantity:", quantity)
+      return
+    }
+
     const existingItem = cartItems.find((item) => item.product._id === product._id)
 
     let updatedCart
@@ -56,12 +70,22 @@ export const CartProvider = ({ children }) => {
   }
 
   const removeFromCart = (productId) => {
+    if (!productId) {
+      console.error("Invalid product ID:", productId)
+      return
+    }
+
     const updatedCart = cartItems.filter((item) => item.product._id !== productId)
     setCartItems(updatedCart)
     saveCart(updatedCart)
   }
 
   const updateQuantity = (productId, quantity) => {
+    if (!productId) {
+      console.error("Invalid product ID:", productId)
+      return
+    }
+
     if (quantity <= 0) {
       removeFromCart(productId)
       return

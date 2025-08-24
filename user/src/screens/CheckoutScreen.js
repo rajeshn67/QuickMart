@@ -56,6 +56,18 @@ export default function CheckoutScreen({ navigation }) {
       return
     }
 
+    // Validate delivery address data
+    if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.state || !deliveryAddress.zipCode) {
+      Alert.alert("Error", "Please provide complete delivery address information")
+      return
+    }
+
+    // Validate coordinates
+    if (!deliveryAddress.coordinates || !deliveryAddress.coordinates.latitude || !deliveryAddress.coordinates.longitude) {
+      Alert.alert("Error", "Please select a valid delivery location on the map")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -91,7 +103,7 @@ export default function CheckoutScreen({ navigation }) {
       ])
     } catch (error) {
       console.error("Error placing order:", error)
-      Alert.alert("Error", "Failed to place order. Please try again.")
+      Alert.alert("Error", error.message || "Failed to place order. Please try again.")
     } finally {
       setLoading(false)
     }

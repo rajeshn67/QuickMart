@@ -19,9 +19,11 @@ export default function OrderHistoryScreen({ navigation }) {
   const loadOrders = async () => {
     try {
       const data = await ordersAPI.getMyOrders()
-      setOrders(data)
+      setOrders(data?.orders || data || [])
     } catch (error) {
       console.error("Error loading orders:", error)
+      setOrders([])
+      // Could show an error message here
     } finally {
       setLoading(false)
       setRefreshing(false)

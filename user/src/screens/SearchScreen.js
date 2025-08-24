@@ -1,19 +1,28 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from "react-native"
+import React, { useState, useEffect } from "react"
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
+import { useFocusEffect } from "@react-navigation/native"
 import { productsAPI, categoriesAPI } from "../services/api"
 import ProductCard from "../components/ProductCard"
 
 export default function SearchScreen({ navigation, route }) {
-  const { query: initialQuery } = route.params || {}
-  const [searchQuery, setSearchQuery] = useState(initialQuery || "")
+  const [searchQuery, setSearchQuery] = useState("")
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState("")
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const query = route.params?.query
+      if (query && query !== searchQuery) {
+        setSearchQuery(query)
+      }
+    }, [route.params?.query])
+  )
 
   useEffect(() => {
     loadCategories()
@@ -30,9 +39,10 @@ export default function SearchScreen({ navigation, route }) {
   const loadCategories = async () => {
     try {
       const data = await categoriesAPI.getCategories()
-      setCategories(data)
+      setCategories(data || [])
     } catch (error) {
       console.error("Error loading categories:", error)
+      // Don't show error for categories, just log it
     }
   }
 
@@ -44,9 +54,12 @@ export default function SearchScreen({ navigation, route }) {
       if (selectedCategory) params.category = selectedCategory
 
       const data = await productsAPI.getProducts(params)
-      setProducts(data.products)
+      setProducts(data?.products || [])
     } catch (error) {
       console.error("Error searching products:", error)
+      setProducts([])
+      // Show error message to user
+      Alert.alert("Error", error.message || "Failed to search products")
     } finally {
       setLoading(false)
     }
@@ -84,7 +97,6 @@ export default function SearchScreen({ navigation, route }) {
             placeholder="Search for products..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            autoFocus={!initialQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>

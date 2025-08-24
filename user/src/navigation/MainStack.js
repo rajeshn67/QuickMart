@@ -19,8 +19,24 @@ function HomeStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: "Product Details" }} />
-      <Stack.Screen name="CategoryProducts" component={CategoryProductsScreen} options={{ title: "Products" }} />
+      <Stack.Screen 
+        name="ProductDetail" 
+        component={ProductDetailScreen} 
+        options={{ 
+          title: "Product Details",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
+      <Stack.Screen 
+        name="CategoryProducts" 
+        component={CategoryProductsScreen} 
+        options={{ 
+          title: "Products",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
     </Stack.Navigator>
   )
 }
@@ -39,7 +55,15 @@ function ProfileStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ title: "Order History" }} />
+      <Stack.Screen 
+        name="OrderHistory" 
+        component={OrderHistoryScreen} 
+        options={{ 
+          title: "Order History",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
     </Stack.Navigator>
   )
 }
@@ -68,18 +92,40 @@ export default function MainStack() {
         tabBarActiveTintColor: "#4CAF50",
         tabBarInactiveTintColor: "gray",
         headerShown: false,
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "500",
+        },
       })}
     >
-      <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen 
+        name="Home" 
+        component={HomeStack} 
+        options={{ title: "Home" }}
+      />
+      <Tab.Screen 
+        name="Search" 
+        component={SearchScreen} 
+        options={{ title: "Search" }}
+      />
       <Tab.Screen
         name="Cart"
         component={CartStack}
         options={{
+          title: "Cart",
           tabBarBadge: getCartItemsCount() > 0 ? getCartItemsCount() : null,
         }}
       />
-      <Tab.Screen name="Profile" component={ProfileStack} />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileStack} 
+        options={{ title: "Profile" }}
+      />
     </Tab.Navigator>
   )
 }

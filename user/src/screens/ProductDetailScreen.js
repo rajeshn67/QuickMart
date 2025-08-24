@@ -1,37 +1,36 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { CartContext } from "../context/CartContext"
-import { getProduct } from "../services/api"
+import { useCart } from "../context/CartContext"
+import { productsAPI } from "../services/api"
 
 const ProductDetailScreen = ({ route, navigation }) => {
-  const { productId } = route.params
-  const [product, setProduct] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { product } = route.params
+  const [loading, setLoading] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const { addToCart } = useContext(CartContext)
+  const { addToCart } = useCart()
 
-  useEffect(() => {
-    fetchProduct()
-  }, [])
-
-  const fetchProduct = async () => {
-    try {
-      const response = await getProduct(productId)
-      setProduct(response.data)
-    } catch (error) {
-      Alert.alert("Error", "Failed to load product details")
-      navigation.goBack()
-    } finally {
-      setLoading(false)
-    }
+  // Validate product data
+  if (!product || !product._id) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Invalid product data</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
   }
 
   const handleAddToCart = () => {
-    addToCart({ ...product, quantity })
-    Alert.alert("Success", "Product added to cart!")
+    if (product && product._id) {
+      addToCart(product, quantity)
+      Alert.alert("Success", "Product added to cart!")
+    } else {
+      Alert.alert("Error", "Invalid product data")
+    }
   }
 
   const incrementQuantity = () => {
@@ -42,22 +41,6 @@ const ProductDetailScreen = ({ route, navigation }) => {
     if (quantity > 1) {
       setQuantity((prev) => prev - 1)
     }
-  }
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
-    )
-  }
-
-  if (!product) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Product not found</Text>
-      </View>
-    )
   }
 
   return (
@@ -76,7 +59,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         <Text style={styles.productUnit}>per {product.unit}</Text>
 
         <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.productDescription}>{product.description}</Text>
+        <Text style={styles.productDescription}>{product.description || "No description available"}</Text>
 
         <View style={styles.quantityContainer}>
           <Text style={styles.sectionTitle}>Quantity</Text>
@@ -126,6 +109,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#333",
   },
   productImage: {
     width: "100%",
