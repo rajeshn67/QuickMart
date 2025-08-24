@@ -1,0 +1,85 @@
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
+import { createStackNavigator } from "@react-navigation/stack"
+import { Ionicons } from "@expo/vector-icons"
+import HomeScreen from "../screens/HomeScreen"
+import SearchScreen from "../screens/SearchScreen"
+import CartScreen from "../screens/CartScreen"
+import ProfileScreen from "../screens/ProfileScreen"
+import ProductDetailScreen from "../screens/ProductDetailScreen"
+import CategoryProductsScreen from "../screens/CategoryProductsScreen"
+import CheckoutScreen from "../screens/CheckoutScreen"
+import OrderHistoryScreen from "../screens/OrderHistoryScreen"
+import LocationPickerScreen from "../screens/LocationPickerScreen"
+import { useCart } from "../context/CartContext"
+
+const Tab = createBottomTabNavigator()
+const Stack = createStackNavigator()
+
+function HomeStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: "Product Details" }} />
+      <Stack.Screen name="CategoryProducts" component={CategoryProductsScreen} options={{ title: "Products" }} />
+    </Stack.Navigator>
+  )
+}
+
+function CartStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="CartMain" component={CartScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LocationPicker" component={LocationPickerScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  )
+}
+
+function ProfileStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ title: "Order History" }} />
+    </Stack.Navigator>
+  )
+}
+
+export default function MainStack() {
+  const { getCartItemsCount } = useCart()
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline"
+          } else if (route.name === "Search") {
+            iconName = focused ? "search" : "search-outline"
+          } else if (route.name === "Cart") {
+            iconName = focused ? "cart" : "cart-outline"
+          } else if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline"
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />
+        },
+        tabBarActiveTintColor: "#4CAF50",
+        tabBarInactiveTintColor: "gray",
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeStack} />
+      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen
+        name="Cart"
+        component={CartStack}
+        options={{
+          tabBarBadge: getCartItemsCount() > 0 ? getCartItemsCount() : null,
+        }}
+      />
+      <Tab.Screen name="Profile" component={ProfileStack} />
+    </Tab.Navigator>
+  )
+}
