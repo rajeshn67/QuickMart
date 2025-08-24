@@ -16,20 +16,20 @@ const app = express()
 app.use(helmet())
 
 // CORS configuration
-// app.use(
-//   cors({
-//     origin: "*",   // 👈 allow all origins
-//   })
-// );
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://your-admin-domain.com", "https://your-app-domain.com"]
-        : ["http://localhost:5173", "http://localhost:3001", "http://192.168.1.100:19006"],
-    credentials: true,
-  }),
-)
+    origin: "*",   // 👈 allow all origins
+  })
+);
+// app.use(
+//   cors({
+//     origin:
+//       process.env.NODE_ENV === "production"
+//         ? ["https://your-admin-domain.com", "https://your-app-domain.com"]
+//         : ["http://localhost:5173", "http://localhost:3001", "http://192.168.1.100:19006"],
+//     credentials: true,
+//   }),
+// )
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }))

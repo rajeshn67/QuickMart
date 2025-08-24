@@ -25,24 +25,33 @@ export const AuthProvider = ({ children }) => {
   const loadUser = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken")
+      console.log("Token found in storage:", !!token)
       if (token) {
         const userData = await authAPI.getProfile()
+        console.log("User data loaded:", userData)
         setUser(userData.user)
       }
     } catch (error) {
       console.error("Error loading user:", error)
-      await AsyncStorage.removeItem("userToken")
+      // Only remove token if there's an actual error, not just if user data can't be loaded
+      if (error.response?.status === 401) {
+        await AsyncStorage.removeItem("userToken")
+      }
     }
   }
 
   const login = async (email, password) => {
     setLoading(true)
     try {
+      console.log("Attempting login with:", email)
       const response = await authAPI.login(email, password)
+      console.log("Login response:", response)
       await AsyncStorage.setItem("userToken", response.token)
       setUser(response.user)
+      console.log("User set in context:", response.user)
       return { success: true }
     } catch (error) {
+      console.error("Login error:", error)
       return { success: false, error: error.response?.data?.message || "Login failed" }
     } finally {
       setLoading(false)

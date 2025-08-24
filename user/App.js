@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { NavigationContainer } from "@react-navigation/native"
 import { createStackNavigator } from "@react-navigation/stack"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { AuthProvider } from "./src/context/AuthContext"
+import { AuthProvider, useAuth } from "./src/context/AuthContext"
 import { CartProvider } from "./src/context/CartContext"
 import AuthStack from "./src/navigation/AuthStack"
 import MainStack from "./src/navigation/MainStack"
@@ -12,18 +12,22 @@ import LoadingScreen from "./src/screens/LoadingScreen"
 
 const Stack = createStackNavigator()
 
-export default function App() {
+function AppContent() {
   const [isLoading, setIsLoading] = useState(true)
-  const [userToken, setUserToken] = useState(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     checkAuthState()
   }, [])
 
+  useEffect(() => {
+    console.log("User state changed:", user)
+  }, [user])
+
   const checkAuthState = async () => {
     try {
-      const token = await AsyncStorage.getItem("userToken")
-      setUserToken(token)
+      // Just wait a bit to let AuthContext load the user
+      await new Promise(resolve => setTimeout(resolve, 100))
     } catch (error) {
       console.error("Error checking auth state:", error)
     } finally {
@@ -35,18 +39,26 @@ export default function App() {
     return <LoadingScreen />
   }
 
+  console.log("Rendering AppContent, user:", user, "showing:", user ? "Main" : "Auth")
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Screen name="Main" component={MainStack} />
+        ) : (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  )
+}
+
+export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {userToken ? (
-              <Stack.Screen name="Main" component={MainStack} />
-            ) : (
-              <Stack.Screen name="Auth" component={AuthStack} />
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
+        <AppContent />
       </CartProvider>
     </AuthProvider>
   )
