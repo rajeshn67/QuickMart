@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   preview: {
-    allowedHosts: [
-      'quickmart-ftik.onrender.com'
-    ]
-  }
+    host: '0.0.0.0', // important for Render
+    port: parseInt(process.env.PORT) || 10000, // Render sets PORT
+    allowedHosts: ['quickmart-ftik.onrender.com'], // your Render domain
+  },
 })
