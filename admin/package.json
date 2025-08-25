@@ -32,9 +32,7 @@
     ],
     "server": {
       "allowedHosts": [
-        "localhost",
-        "quickmart-ftik.onrender.com",
-        "someotherdomain.com"
+        "quickmart-ftik.onrender.com"
       ]
     }
   }
