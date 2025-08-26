@@ -64,12 +64,15 @@ export default function OrderDetailScreen({ route, navigation }) {
   const confirmCancelOrder = async () => {
     setLoading(true)
     try {
+      console.log("Attempting to cancel order:", currentOrder._id)
+      console.log("API URL will be:", `/orders/${currentOrder._id}/cancel`)
       await ordersAPI.cancelOrder(currentOrder._id)
       setCurrentOrder(prev => ({ ...prev, status: 'cancelled' }))
       Alert.alert("Success", "Order cancelled successfully")
     } catch (error) {
       console.error("Cancel order error:", error)
-      Alert.alert("Error", "Failed to cancel order. Please try again.")
+      console.error("Error details:", error.response?.data || error.message)
+      Alert.alert("Error", `Failed to cancel order: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)
     }
