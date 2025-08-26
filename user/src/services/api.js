@@ -2,7 +2,7 @@ import axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 // Normalize base URL: ensure it always ends with '/api'
-const RAW_BASE = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000"
+const RAW_BASE = process.env.EXPO_PUBLIC_API_URL || "https://quickmart-keqz.onrender.com"
 const BASE_URL = RAW_BASE.endsWith("/api")
   ? RAW_BASE
   : `${RAW_BASE.replace(/\/$/, "")}/api`
