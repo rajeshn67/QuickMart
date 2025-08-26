@@ -9,6 +9,7 @@ const productRoutes = require("./routes/products")
 const orderRoutes = require("./routes/orders")
 const categoryRoutes = require("./routes/categories")
 const uploadRoutes = require("./routes/upload")
+const cartRoutes = require("./routes/cart")
 
 const app = express()
 
@@ -41,6 +42,7 @@ app.use("/api/products", productRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/categories", categoryRoutes)
 app.use("/api/upload", uploadRoutes)
+app.use("/api/cart", cartRoutes)
 
 // MongoDB Connection
 mongoose
@@ -65,6 +67,7 @@ app.get("/", (req, res) => {
       orders: "/api/orders",
       categories: "/api/categories",
       upload: "/api/upload",
+      cart: "/api/cart",
     },
   })
 })

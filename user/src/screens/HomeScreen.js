@@ -17,6 +17,17 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) {
+      return "Good Morning"
+    } else if (hour < 17) {
+      return "Good Afternoon"
+    } else {
+      return "Good Evening"
+    }
+  }
+
   useEffect(() => {
     loadData()
   }, [])
@@ -54,7 +65,7 @@ export default function HomeScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good Morning</Text>
+            <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
             <Text style={styles.userName}>{user?.fullName || "User"}</Text>
           </View>
           <TouchableOpacity style={styles.locationButton}>

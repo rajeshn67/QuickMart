@@ -12,7 +12,6 @@ import OrderHistoryScreen from "../screens/OrderHistoryScreen"
 import LocationPickerScreen from "../screens/LocationPickerScreen"
 import EditProfileScreen from "../screens/EditProfileScreen"
 import OrderDetailScreen from "../screens/OrderDetailScreen"
-import ReferralScreen from "../screens/ReferralScreen"
 import { useCart } from "../context/CartContext"
 
 const Tab = createBottomTabNavigator()
@@ -75,11 +74,6 @@ function ProfileStack() {
       <Stack.Screen 
         name="OrderDetail" 
         component={OrderDetailScreen} 
-        options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="Referral" 
-        component={ReferralScreen} 
         options={{ headerShown: false }} 
       />
     </Stack.Navigator>

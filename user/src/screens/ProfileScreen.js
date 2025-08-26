@@ -38,12 +38,6 @@ export default function ProfileScreen({ navigation }) {
       onPress: () => navigation.navigate("OrderHistory"),
     },
     {
-      icon: "people-outline",
-      title: "Refer & Earn",
-      subtitle: "Invite friends and earn ₹50 credits",
-      onPress: () => navigation.navigate("Referral"),
-    },
-    {
       icon: "help-circle-outline",
       title: "Help & Support",
       subtitle: "Get help with your orders",

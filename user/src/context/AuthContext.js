@@ -130,10 +130,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Clear all user-related data from AsyncStorage
-      await AsyncStorage.clear()
+      // Only clear the user token, keep cart data for persistence
+      await AsyncStorage.removeItem("userToken")
       setUser(null)
-      console.log("User logged out successfully - all data cleared")
+      console.log("User logged out successfully")
     } catch (error) {
       console.error("Error logging out:", error)
       // Even if there's an error, clear the user state

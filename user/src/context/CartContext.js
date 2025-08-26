@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useAuth } from "./AuthContext"
+import { cartAPI } from "../services/api"
 
 const CartContext = createContext()
 
@@ -19,17 +20,24 @@ export const CartProvider = ({ children }) => {
   const { user } = useAuth()
 
   useEffect(() => {
-    loadCart()
-  }, [])
-
-  // Clear cart when user changes (logout/login with different user)
-  useEffect(() => {
-    if (!user) {
-      setCartItems([])
+    // Load cart when user changes but don't clear on logout
+    if (user) {
+      loadCartFromServer()
     }
   }, [user])
 
-  const loadCart = async () => {
+  const loadCartFromServer = async () => {
+    try {
+      const response = await cartAPI.getCart()
+      setCartItems(response.cart || [])
+    } catch (error) {
+      console.error("Error loading cart from server:", error)
+      // Fallback to local storage if server fails
+      loadCartFromLocal()
+    }
+  }
+
+  const loadCartFromLocal = async () => {
     try {
       const savedCart = await AsyncStorage.getItem("cart")
       if (savedCart) {
@@ -37,8 +45,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(parsedCart)
       }
     } catch (error) {
-      console.error("Error loading cart:", error)
-      // Reset cart if there's an error loading
+      console.error("Error loading cart from local storage:", error)
       setCartItems([])
     }
   }
@@ -52,7 +59,7 @@ export const CartProvider = ({ children }) => {
     }
   }
 
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = async (product, quantity = 1) => {
     if (!product || !product._id) {
       console.error("Invalid product data:", product)
       return
@@ -63,33 +70,69 @@ export const CartProvider = ({ children }) => {
       return
     }
 
-    const existingItem = cartItems.find((item) => item.product._id === product._id)
-
-    let updatedCart
-    if (existingItem) {
-      updatedCart = cartItems.map((item) =>
-        item.product._id === product._id ? { ...item, quantity: item.quantity + quantity } : item,
-      )
-    } else {
-      updatedCart = [...cartItems, { product, quantity }]
+    try {
+      if (user) {
+        // Add to server cart
+        const response = await cartAPI.addToCart(product._id, quantity)
+        setCartItems(response.cart || [])
+      } else {
+        // Fallback to local storage for guest users
+        const existingItem = cartItems.find((item) => item.product._id === product._id)
+        let updatedCart
+        if (existingItem) {
+          updatedCart = cartItems.map((item) =>
+            item.product._id === product._id ? { ...item, quantity: item.quantity + quantity } : item,
+          )
+        } else {
+          updatedCart = [...cartItems, { product, quantity }]
+        }
+        setCartItems(updatedCart)
+        saveCart(updatedCart)
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error)
+      // Fallback to local storage
+      const existingItem = cartItems.find((item) => item.product._id === product._id)
+      let updatedCart
+      if (existingItem) {
+        updatedCart = cartItems.map((item) =>
+          item.product._id === product._id ? { ...item, quantity: item.quantity + quantity } : item,
+        )
+      } else {
+        updatedCart = [...cartItems, { product, quantity }]
+      }
+      setCartItems(updatedCart)
+      saveCart(updatedCart)
     }
-
-    setCartItems(updatedCart)
-    saveCart(updatedCart)
   }
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = async (productId) => {
     if (!productId) {
       console.error("Invalid product ID:", productId)
       return
     }
 
-    const updatedCart = cartItems.filter((item) => item.product._id !== productId)
-    setCartItems(updatedCart)
-    saveCart(updatedCart)
+    try {
+      if (user) {
+        // Remove from server cart
+        const response = await cartAPI.removeFromCart(productId)
+        setCartItems(response.cart || [])
+      } else {
+        // Fallback to local storage
+        const updatedCart = cartItems.filter((item) => item.product._id !== productId)
+        setCartItems(updatedCart)
+        saveCart(updatedCart)
+      }
+    } catch (error) {
+      console.error("Error removing from cart:", error)
+      // Fallback to local storage
+      const updatedCart = cartItems.filter((item) => item.product._id !== productId)
+      setCartItems(updatedCart)
+      saveCart(updatedCart)
+    }
   }
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = async (productId, quantity) => {
     if (!productId) {
       console.error("Invalid product ID:", productId)
       return
@@ -100,13 +143,32 @@ export const CartProvider = ({ children }) => {
       return
     }
 
-    const updatedCart = cartItems.map((item) => (item.product._id === productId ? { ...item, quantity } : item))
-    setCartItems(updatedCart)
-    saveCart(updatedCart)
+    try {
+      if (user) {
+        // Update on server
+        const response = await cartAPI.updateCart(productId, quantity)
+        setCartItems(response.cart || [])
+      } else {
+        // Fallback to local storage
+        const updatedCart = cartItems.map((item) => (item.product._id === productId ? { ...item, quantity } : item))
+        setCartItems(updatedCart)
+        saveCart(updatedCart)
+      }
+    } catch (error) {
+      console.error("Error updating cart:", error)
+      // Fallback to local storage
+      const updatedCart = cartItems.map((item) => (item.product._id === productId ? { ...item, quantity } : item))
+      setCartItems(updatedCart)
+      saveCart(updatedCart)
+    }
   }
 
   const clearCart = async () => {
     try {
+      if (user) {
+        // Clear on server
+        await cartAPI.clearCart()
+      }
       setCartItems([])
       await AsyncStorage.removeItem("cart")
       console.log("Cart cleared successfully")
