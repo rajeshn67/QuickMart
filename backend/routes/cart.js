@@ -2,12 +2,12 @@ const express = require("express")
 const router = express.Router()
 const User = require("../models/User")
 const Product = require("../models/Product")
-const auth = require("../middleware/auth")
+const { auth } = require("../middleware/auth")
 
 // Get user's cart
 router.get("/", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate({
+    const user = await User.findById(req.user._id).populate({
       path: 'cart.product',
       select: 'name price image category'
     })
@@ -37,7 +37,7 @@ router.post("/add", auth, async (req, res) => {
       return res.status(404).json({ message: "Product not found" })
     }
 
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(req.user._id)
     if (!user) {
       return res.status(404).json({ message: "User not found" })
     }
@@ -81,7 +81,7 @@ router.put("/update", auth, async (req, res) => {
       return res.status(400).json({ message: "Valid product ID and quantity are required" })
     }
 
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(req.user._id)
     if (!user) {
       return res.status(404).json({ message: "User not found" })
     }
@@ -124,7 +124,7 @@ router.delete("/remove/:productId", auth, async (req, res) => {
   try {
     const { productId } = req.params
 
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(req.user._id)
     if (!user) {
       return res.status(404).json({ message: "User not found" })
     }
@@ -153,7 +153,7 @@ router.delete("/remove/:productId", auth, async (req, res) => {
 // Clear entire cart
 router.delete("/clear", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(req.user._id)
     if (!user) {
       return res.status(404).json({ message: "User not found" })
     }
