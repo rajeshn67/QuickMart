@@ -230,12 +230,12 @@ export default function EditProfileScreen({ navigation }) {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, styles.disabledInput]}
               value={formData.email}
-              onChangeText={(value) => handleInputChange('email', value)}
               placeholder="Enter your email"
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={false}
             />
           </View>
 
@@ -368,6 +368,10 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: "#fff",
+  },
+  disabledInput: {
+    backgroundColor: "#f5f5f5",
+    color: "#666",
   },
   row: {
     flexDirection: "row",

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useAuth } from "./AuthContext"
 
 const CartContext = createContext()
 
@@ -15,10 +16,18 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([])
+  const { user } = useAuth()
 
   useEffect(() => {
     loadCart()
   }, [])
+
+  // Clear cart when user changes (logout/login with different user)
+  useEffect(() => {
+    if (!user) {
+      setCartItems([])
+    }
+  }, [user])
 
   const loadCart = async () => {
     try {
@@ -96,9 +105,16 @@ export const CartProvider = ({ children }) => {
     saveCart(updatedCart)
   }
 
-  const clearCart = () => {
-    setCartItems([])
-    saveCart([])
+  const clearCart = async () => {
+    try {
+      setCartItems([])
+      await AsyncStorage.removeItem("cart")
+      console.log("Cart cleared successfully")
+    } catch (error) {
+      console.error("Error clearing cart:", error)
+      // Still clear the state even if storage fails
+      setCartItems([])
+    }
   }
 
   const getCartTotal = () => {
