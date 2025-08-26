@@ -33,7 +33,7 @@ export default function CartScreen({ navigation }) {
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.product.name}</Text>
         <Text style={styles.productUnit}>{item.product.unit}</Text>
-        <Text style={styles.productPrice}>${item.product.price}</Text>
+        <Text style={styles.productPrice}>₹{item.product.price}</Text>
       </View>
       <View style={styles.quantityContainer}>
         <TouchableOpacity
@@ -92,7 +92,7 @@ export default function CartScreen({ navigation }) {
       <View style={styles.footer}>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalAmount}>${getCartTotal().toFixed(2)}</Text>
+          <Text style={styles.totalAmount}>₹{getCartTotal().toFixed(2)}</Text>
         </View>
         <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
           <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>

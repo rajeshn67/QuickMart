@@ -205,10 +205,10 @@ export default function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                   <div>
                     <p style={{ fontWeight: "500", marginBottom: "2px" }}>{item.product?.name}</p>
                     <p style={{ fontSize: "12px", color: "#6b7280" }}>
-                      Quantity: {item.quantity} × ${item.price}
+                      Quantity: {item.quantity} × ₹{item.price}
                     </p>
                   </div>
-                  <p style={{ fontWeight: "600" }}>${(item.quantity * item.price).toFixed(2)}</p>
+                  <p style={{ fontWeight: "600" }}>₹{(item.quantity * item.price).toFixed(2)}</p>
                 </div>
               ))}
               <div
@@ -222,7 +222,7 @@ export default function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                 }}
               >
                 <span>Total Amount</span>
-                <span style={{ fontSize: "18px", color: "#4CAF50" }}>${order.totalAmount?.toFixed(2)}</span>
+                <span style={{ fontSize: "18px", color: "#4CAF50" }}>₹{order.totalAmount?.toFixed(2)}</span>
               </div>
             </div>
           </div>

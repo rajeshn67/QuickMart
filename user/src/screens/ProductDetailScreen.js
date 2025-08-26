@@ -55,7 +55,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
 
       <View style={styles.content}>
         <Text style={styles.productName}>{product.name}</Text>
-        <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
+        <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
         <Text style={styles.productUnit}>per {product.unit}</Text>
 
         <Text style={styles.sectionTitle}>Description</Text>
@@ -75,7 +75,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         </View>
 
         <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-          <Text style={styles.addToCartText}>Add to Cart - ${(product.price * quantity).toFixed(2)}</Text>
+          <Text style={styles.addToCartText}>Add to Cart - ₹{(product.price * quantity).toFixed(2)}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

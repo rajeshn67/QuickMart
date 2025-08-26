@@ -172,16 +172,16 @@ export default function CheckoutScreen({ navigation }) {
               <Text style={styles.itemName}>
                 {item.product.name} x {item.quantity}
               </Text>
-              <Text style={styles.itemPrice}>${(item.product.price * item.quantity).toFixed(2)}</Text>
+              <Text style={styles.itemPrice}>₹{(item.product.price * item.quantity).toFixed(2)}</Text>
             </View>
           ))}
           <View style={styles.orderItem}>
             <Text style={styles.itemName}>Delivery Fee</Text>
-            <Text style={styles.itemPrice}>${deliveryFee.toFixed(2)}</Text>
+            <Text style={styles.itemPrice}>₹{deliveryFee.toFixed(2)}</Text>
           </View>
           <View style={[styles.orderItem, styles.totalRow]}>
             <Text style={styles.totalText}>Total</Text>
-            <Text style={styles.totalPrice}>${total.toFixed(2)}</Text>
+            <Text style={styles.totalPrice}>₹{total.toFixed(2)}</Text>
           </View>
         </View>
 
@@ -216,7 +216,7 @@ export default function CheckoutScreen({ navigation }) {
           disabled={loading}
         >
           <Text style={styles.placeOrderText}>
-            {loading ? "Placing Order..." : `Place Order - $${total.toFixed(2)}`}
+            {loading ? "Placing Order..." : `Place Order - ₹${total.toFixed(2)}`}
           </Text>
         </TouchableOpacity>
       </View>

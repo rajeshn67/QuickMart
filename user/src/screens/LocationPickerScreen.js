@@ -113,11 +113,8 @@ export default function LocationPickerScreen({ navigation, route }) {
       zipCode: address.split(" ")[3] || "",
     }
 
-    if (onLocationSelect) {
-      onLocationSelect(locationData)
-    }
-
-    navigation.goBack()
+    // Navigate back with location data as params
+    navigation.navigate('Checkout', { locationData })
   }
 
   if (loading) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Image } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../context/AuthContext"
@@ -20,10 +20,7 @@ export default function ProfileScreen({ navigation }) {
       icon: "person-outline",
       title: "Edit Profile",
       subtitle: "Update your personal information",
-      onPress: () => {
-        // Navigate to edit profile screen
-        console.log("Edit profile")
-      },
+      onPress: () => navigation.navigate("EditProfile"),
     },
     {
       icon: "location-outline",
@@ -66,7 +63,11 @@ export default function ProfileScreen({ navigation }) {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={40} color="#4CAF50" />
+            {user?.profileImage ? (
+              <Image source={{ uri: user.profileImage }} style={styles.avatarImage} />
+            ) : (
+              <Ionicons name="person" size={40} color="#4CAF50" />
+            )}
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>{user?.fullName || "User"}</Text>
@@ -132,6 +133,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   profileInfo: {
     flex: 1,

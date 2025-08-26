@@ -28,8 +28,8 @@ export default function ProductCard({ product, onPress }) {
         <Text style={styles.unit}>{product.unit}</Text>
         <View style={styles.footer}>
           <View>
-            <Text style={styles.price}>${product.price}</Text>
-            {product.originalPrice && <Text style={styles.originalPrice}>${product.originalPrice}</Text>}
+            <Text style={styles.price}>₹{product.price}</Text>
+            {product.originalPrice && <Text style={styles.originalPrice}>₹{product.originalPrice}</Text>}
           </View>
           <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
             <Ionicons name="add" size={20} color="#fff" />

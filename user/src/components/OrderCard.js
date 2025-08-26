@@ -78,7 +78,7 @@ export default function OrderCard({ order, onPress }) {
         <Text style={styles.itemsCount}>
           {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? "s" : ""}
         </Text>
-        <Text style={styles.totalAmount}>${order.totalAmount?.toFixed(2)}</Text>
+        <Text style={styles.totalAmount}>₹{order.totalAmount?.toFixed(2)}</Text>
       </View>
 
       <View style={styles.footer}>

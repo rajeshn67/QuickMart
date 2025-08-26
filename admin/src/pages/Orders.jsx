@@ -183,7 +183,7 @@ export default function Orders() {
                       </div>
                     </td>
                     <td>{order.items?.length || 0} items</td>
-                    <td style={{ fontWeight: "600" }}>${order.totalAmount?.toFixed(2)}</td>
+                    <td style={{ fontWeight: "600" }}>₹{order.totalAmount?.toFixed(2)}</td>
                     <td>
                       <select
                         className="form-select"

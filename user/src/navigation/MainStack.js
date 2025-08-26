@@ -10,6 +10,7 @@ import CategoryProductsScreen from "../screens/CategoryProductsScreen"
 import CheckoutScreen from "../screens/CheckoutScreen"
 import OrderHistoryScreen from "../screens/OrderHistoryScreen"
 import LocationPickerScreen from "../screens/LocationPickerScreen"
+import EditProfileScreen from "../screens/EditProfileScreen"
 import { useCart } from "../context/CartContext"
 
 const Tab = createBottomTabNavigator()
@@ -63,6 +64,11 @@ function ProfileStack() {
           headerStyle: { backgroundColor: "#fff" },
           headerTintColor: "#333",
         }} 
+      />
+      <Stack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen} 
+        options={{ headerShown: false }} 
       />
     </Stack.Navigator>
   )

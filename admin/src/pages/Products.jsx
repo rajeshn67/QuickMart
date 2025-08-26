@@ -185,7 +185,7 @@ export default function Products() {
                       </div>
                     </td>
                     <td>{product.category?.name}</td>
-                    <td>${product.price}</td>
+                    <td>₹{product.price}</td>
                     <td>{product.stock}</td>
                     <td>
                       <span className={`status-badge ${product.isActive ? "status-confirmed" : "status-cancelled"}`}>

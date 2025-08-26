@@ -89,6 +89,7 @@ router.get("/me", auth, async (req, res) => {
         role: req.user.role,
         address: req.user.address,
         phone: req.user.phone,
+        profileImage: req.user.profileImage,
       },
     })
   } catch (error) {
@@ -99,11 +100,11 @@ router.get("/me", auth, async (req, res) => {
 // Update user profile
 router.put("/profile", auth, async (req, res) => {
   try {
-    const { fullName, phone, address } = req.body
+    const { fullName, phone, address, profileImage } = req.body
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { fullName, phone, address },
+      { fullName, phone, address, profileImage },
       { new: true, runValidators: true },
     ).select("-password")
 
@@ -116,6 +117,7 @@ router.put("/profile", auth, async (req, res) => {
         role: user.role,
         address: user.address,
         phone: user.phone,
+        profileImage: user.profileImage,
       },
     })
   } catch (error) {

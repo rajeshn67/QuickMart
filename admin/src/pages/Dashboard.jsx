@@ -140,7 +140,7 @@ export default function Dashboard() {
                   <tr key={order._id}>
                     <td style={{ fontFamily: "monospace" }}>{order._id.slice(-8)}</td>
                     <td>{order.user?.fullName}</td>
-                    <td>${order.totalAmount.toFixed(2)}</td>
+                    <td>₹{order.totalAmount.toFixed(2)}</td>
                     <td>
                       <span className={`status-badge status-${order.status}`}>{order.status}</span>
                     </td>

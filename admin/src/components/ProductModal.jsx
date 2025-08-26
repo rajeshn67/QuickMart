@@ -119,7 +119,7 @@ export default function ProductModal({ product, categories, onClose }) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             <div className="form-group">
-              <label className="form-label">Price ($)</label>
+              <label className="form-label">Price (₹)</label>
               <input
                 type="number"
                 name="price"
@@ -133,7 +133,7 @@ export default function ProductModal({ product, categories, onClose }) {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Original Price ($)</label>
+              <label className="form-label">Original Price (₹)</label>
               <input
                 type="number"
                 name="originalPrice"
