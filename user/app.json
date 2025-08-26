@@ -27,13 +27,24 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE"
       ],
-      "package": "com.rajeshn67.quickmartuser"
+      "package": "com.rajeshn67.quickmartuser",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAKZpS23x4O9g1Rl8MAWdDZAjKuEqqIkQU"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-location"
+      "expo-location",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow QuickMart to use your location to show nearby stores and delivery options."
+        }
+      ]
     ],
     "extra": {
       "eas": {
