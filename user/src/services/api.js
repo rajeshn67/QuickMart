@@ -111,6 +111,10 @@ export const ordersAPI = {
     const response = await api.get("/orders/my-orders")
     return response.data
   },
+  cancelOrder: async (orderId) => {
+    const response = await api.put(`/orders/${orderId}/cancel`)
+    return response.data
+  },
 }
 
 export default api

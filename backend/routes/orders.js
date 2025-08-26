@@ -71,6 +71,42 @@ router.get("/", adminAuth, async (req, res) => {
   }
 })
 
+// Cancel user's own order
+router.put("/:id/cancel", auth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" })
+    }
+
+    // Check if user owns this order
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to cancel this order" })
+    }
+
+    // Check if order can be cancelled
+    if (!['pending', 'confirmed'].includes(order.status)) {
+      return res.status(400).json({ message: "Order cannot be cancelled at this stage" })
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id, 
+      { status: 'cancelled' }, 
+      { new: true }
+    )
+      .populate("user", "fullName email phone")
+      .populate("items.product", "name image price unit")
+
+    res.json({
+      message: "Order cancelled successfully",
+      order: updatedOrder,
+    })
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+})
+
 // Update order status (Admin only)
 router.put("/:id/status", adminAuth, async (req, res) => {
   try {

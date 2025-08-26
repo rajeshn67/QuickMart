@@ -38,8 +38,7 @@ export default function OrderHistoryScreen({ navigation }) {
   const renderOrder = ({ item }) => <OrderCard order={item} onPress={() => handleOrderPress(item)} />
 
   const handleOrderPress = (order) => {
-    // Navigate to order detail screen (to be implemented)
-    console.log("Order pressed:", order._id)
+    navigation.navigate("OrderDetail", { order })
   }
 
   if (loading) {

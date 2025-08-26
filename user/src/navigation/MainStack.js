@@ -11,6 +11,7 @@ import CheckoutScreen from "../screens/CheckoutScreen"
 import OrderHistoryScreen from "../screens/OrderHistoryScreen"
 import LocationPickerScreen from "../screens/LocationPickerScreen"
 import EditProfileScreen from "../screens/EditProfileScreen"
+import OrderDetailScreen from "../screens/OrderDetailScreen"
 import { useCart } from "../context/CartContext"
 
 const Tab = createBottomTabNavigator()
@@ -68,6 +69,11 @@ function ProfileStack() {
       <Stack.Screen 
         name="EditProfile" 
         component={EditProfileScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="OrderDetail" 
+        component={OrderDetailScreen} 
         options={{ headerShown: false }} 
       />
     </Stack.Navigator>
