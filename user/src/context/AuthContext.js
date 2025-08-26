@@ -143,8 +143,11 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     setLoading(true)
     try {
+      console.log("AuthContext - Updating profile with data:", profileData)
       const response = await authAPI.updateProfile(profileData)
+      console.log("AuthContext - Update response:", response)
       setUser(response.user)
+      console.log("AuthContext - User updated in context:", response.user)
       return { success: true }
     } catch (error) {
       console.error("Update profile error:", error)

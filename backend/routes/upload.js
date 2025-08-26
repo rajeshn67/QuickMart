@@ -1,7 +1,7 @@
 const express = require("express")
 const multer = require("multer")
 const cloudinary = require("../config/cloudinary")
-const { adminAuth } = require("../middleware/auth")
+const { adminAuth, auth } = require("../middleware/auth")
 
 const router = express.Router()
 
@@ -21,7 +21,35 @@ const upload = multer({
   },
 })
 
-// Upload single image
+// Upload profile image (for regular users)
+router.post("/profile-image", auth, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image file provided" })
+    }
+
+    // Convert buffer to base64
+    const b64 = Buffer.from(req.file.buffer).toString("base64")
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "quickmart/profiles",
+      resource_type: "auto",
+    })
+
+    res.json({
+      message: "Profile image uploaded successfully",
+      url: result.secure_url,
+      publicId: result.public_id,
+    })
+  } catch (error) {
+    console.error("Profile image upload error:", error)
+    res.status(500).json({ message: "Error uploading profile image", error: error.message })
+  }
+})
+
+// Upload single image (admin only)
 router.post("/image", adminAuth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {

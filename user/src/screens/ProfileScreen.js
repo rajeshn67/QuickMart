@@ -57,6 +57,10 @@ export default function ProfileScreen({ navigation }) {
     },
   ]
 
+  // Debug: Log user data to check profileImage
+  console.log("ProfileScreen - User data:", user)
+  console.log("ProfileScreen - Profile image:", user?.profileImage)
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>

@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Image } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { useAuth } from '../context/AuthContext'
+import * as ImagePicker from 'expo-image-picker'
+import { uploadAPI } from '../services/api'
 import { Ionicons } from "@expo/vector-icons"
-import * as ImagePicker from "expo-image-picker"
-import { useAuth } from "../context/AuthContext"
 
 export default function EditProfileScreen({ navigation }) {
   const { user, updateProfile } = useAuth()
@@ -59,28 +60,22 @@ export default function EditProfileScreen({ navigation }) {
     }
   }
 
-  const uploadImageToCloudinary = async (imageUri) => {
-    const formData = new FormData()
-    formData.append('file', {
-      uri: imageUri,
-      type: 'image/jpeg',
-      name: 'profile.jpg',
-    })
-    formData.append('upload_preset', 'quickmart_profiles')
-    formData.append('cloud_name', 'dkqfxe7qy')
-
+  const uploadImageToBackend = async (imageUri) => {
     try {
-      const response = await fetch('https://api.cloudinary.com/v1_1/dkqfxe7qy/image/upload', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-      const data = await response.json()
-      return data.secure_url
+      console.log('EditProfileScreen - Uploading image via backend:', imageUri)
+      
+      const imageFile = {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'profile.jpg',
+      }
+      
+      const response = await uploadAPI.uploadProfileImage(imageFile)
+      console.log('EditProfileScreen - Backend upload response:', response)
+      
+      return response.url
     } catch (error) {
-      console.error('Error uploading to Cloudinary:', error)
+      console.error('Error uploading via backend:', error)
       throw error
     }
   }
@@ -102,7 +97,7 @@ export default function EditProfileScreen({ navigation }) {
     if (!result.canceled) {
       setImageUploading(true)
       try {
-        const imageUrl = await uploadImageToCloudinary(result.assets[0].uri)
+        const imageUrl = await uploadImageToBackend(result.assets[0].uri)
         setFormData(prev => ({ ...prev, profileImage: imageUrl }))
       } catch (error) {
         Alert.alert('Error', 'Failed to upload image. Please try again.')
@@ -128,7 +123,7 @@ export default function EditProfileScreen({ navigation }) {
     if (!result.canceled) {
       setImageUploading(true)
       try {
-        const imageUrl = await uploadImageToCloudinary(result.assets[0].uri)
+        const imageUrl = await uploadImageToBackend(result.assets[0].uri)
         setFormData(prev => ({ ...prev, profileImage: imageUrl }))
       } catch (error) {
         Alert.alert('Error', 'Failed to upload image. Please try again.')
@@ -163,11 +158,13 @@ export default function EditProfileScreen({ navigation }) {
 
     setLoading(true)
     try {
+      console.log("EditProfileScreen - Saving profile data:", formData)
       await updateProfile(formData)
       Alert.alert("Success", "Profile updated successfully", [
         { text: "OK", onPress: () => navigation.goBack() }
       ])
     } catch (error) {
+      console.error("EditProfileScreen - Save error:", error)
       Alert.alert("Error", "Failed to update profile. Please try again.")
     } finally {
       setLoading(false)

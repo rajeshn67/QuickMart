@@ -65,6 +65,34 @@ export const productsAPI = {
   },
 }
 
+// Upload API
+export const uploadAPI = {
+  uploadImage: async (imageFile) => {
+    const formData = new FormData()
+    formData.append("image", imageFile)
+    const response = await api.post("/upload/image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    return response.data
+  },
+  uploadProfileImage: async (imageFile) => {
+    const formData = new FormData()
+    formData.append("image", imageFile)
+    const response = await api.post("/upload/profile-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    return response.data
+  },
+  deleteImage: async (publicId) => {
+    const response = await api.delete(`/upload/image/${publicId}`)
+    return response.data
+  },
+}
+
 // Categories API
 export const categoriesAPI = {
   getCategories: async () => {
