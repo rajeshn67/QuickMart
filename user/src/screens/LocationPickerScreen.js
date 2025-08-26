@@ -8,7 +8,6 @@ import { Ionicons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 export default function LocationPickerScreen({ navigation, route }) {
-  const { onLocationSelect } = route.params || {}
   const [region, setRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,

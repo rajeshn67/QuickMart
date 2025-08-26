@@ -153,14 +153,17 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-        {/* Exclusive Offer Banner */}
+        {/* First Delivery Free Banner */}
         {!error && !loading && (
           <View style={styles.bannerContainer}>
             <View style={styles.banner}>
-              <Text style={styles.bannerTitle}>Exclusive Offer</Text>
-              <Text style={styles.bannerSubtitle}>Get 20% off on fresh vegetables</Text>
-              <TouchableOpacity style={styles.bannerButton}>
-                <Text style={styles.bannerButtonText}>Shop Now</Text>
+              <Text style={styles.bannerTitle}>First Delivery Free</Text>
+              <Text style={styles.bannerSubtitle}>Enjoy free delivery on your first order. Limited time offer!</Text>
+              <TouchableOpacity
+                style={styles.bannerButton}
+                onPress={() => navigation.navigate("Search")}
+              >
+                <Text style={styles.bannerButtonText}>Start Shopping</Text>
               </TouchableOpacity>
             </View>
           </View>

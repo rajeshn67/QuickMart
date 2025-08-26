@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native"
+import cartImg from "../../assets/logo.png"
 
 export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Image source={{ uri: "/grocery-cart-with-vegetables.png" }} style={styles.logo} />
+        <Image source={cartImg} style={styles.logo} />
         <Text style={styles.title}>QuickMart</Text>
         <Text style={styles.subtitle}>Fresh groceries delivered to your door</Text>
 

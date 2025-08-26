@@ -8,7 +8,7 @@ import { useCart } from "../context/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { ordersAPI } from "../services/api"
 
-export default function CheckoutScreen({ navigation }) {
+export default function CheckoutScreen({ navigation, route }) {
   const { cartItems, getCartTotal, clearCart } = useCart()
   const { user } = useAuth()
   const [deliveryAddress, setDeliveryAddress] = useState(null)
@@ -36,9 +36,17 @@ export default function CheckoutScreen({ navigation }) {
     }
   }, [user])
 
-  const handleLocationSelect = (locationData) => {
-    setDeliveryAddress(locationData)
-  }
+  // Listen for location selection coming back from LocationPicker
+  useEffect(() => {
+    const locationData = route?.params?.locationData
+    if (locationData) {
+      setDeliveryAddress(locationData)
+      // Clear the param to avoid stale updates on re-render
+      navigation.setParams({ locationData: undefined })
+    }
+  }, [route?.params?.locationData])
+
+  // Removed onLocationSelect callback passed via navigation params
 
   const handlePlaceOrder = async () => {
     if (!deliveryAddress) {
@@ -126,11 +134,7 @@ export default function CheckoutScreen({ navigation }) {
           <Text style={styles.sectionTitle}>Delivery Address</Text>
           <TouchableOpacity
             style={styles.addressCard}
-            onPress={() =>
-              navigation.navigate("LocationPicker", {
-                onLocationSelect: handleLocationSelect,
-              })
-            }
+            onPress={() => navigation.navigate("LocationPicker")}
           >
             <View style={styles.addressContent}>
               <Ionicons name="location-outline" size={24} color="#4CAF50" />
