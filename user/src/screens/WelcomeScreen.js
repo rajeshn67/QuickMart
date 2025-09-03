@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native"
-import cartImg from "../../assets/logo.png"
+import cartImg from "../../assets/logo.jpg"
 
 export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <Image source={cartImg} style={styles.logo} />
-        <Text style={styles.title}>QuickMart</Text>
+      
         <Text style={styles.subtitle}>Fresh groceries delivered to your door</Text>
 
         <View style={styles.buttonContainer}>
@@ -37,14 +37,9 @@ const styles = StyleSheet.create({
   logo: {
     width: 200,
     height: 200,
-    marginBottom: 32,
+    marginBottom: 1,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    marginBottom: 8,
-  },
+
   subtitle: {
     fontSize: 16,
     color: "#666",
