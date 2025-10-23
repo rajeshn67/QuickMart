@@ -29,10 +29,29 @@ export default function ChatSupport() {
 
   useEffect(() => {
     if (selectedChat && socket) {
-      loadChatMessages()
-      socket.emit("join_chat", selectedChat._id)
+      loadChatMessages();
+      socket.emit("join_chat", selectedChat._id);
     }
-  }, [selectedChat, socket])
+  }, [selectedChat, socket]);
+
+  // Listen for real-time new messages for this chat
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (message) => {
+      // Only add message if it belongs to the current chat
+      if (selectedChat && message.chat === selectedChat._id) {
+        setMessages((prev) => [...prev, message]);
+      }
+      loadChats(); // Refresh chat list for last message/unread
+    };
+
+    socket.on("new_message", handleNewMessage);
+
+    return () => {
+      socket.off("new_message", handleNewMessage);
+    };
+  }, [socket, selectedChat]);
 
   useEffect(() => {
     scrollToBottom()
