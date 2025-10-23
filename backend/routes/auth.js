@@ -103,6 +103,23 @@ router.get("/me", auth, async (req, res) => {
   }
 })
 
+// Validate token (for refresh purposes)
+router.get("/validate", auth, async (req, res) => {
+  try {
+    res.json({
+      valid: true,
+      user: {
+        id: req.user._id,
+        fullName: req.user.fullName,
+        email: req.user.email,
+        role: req.user.role,
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+})
+
 // Update user profile
 router.put("/profile", auth, async (req, res) => {
   try {

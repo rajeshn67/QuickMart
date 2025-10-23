@@ -26,10 +26,7 @@ export default function ProfileScreen({ navigation }) {
       icon: "location-outline",
       title: "Delivery Addresses",
       subtitle: "Manage your delivery locations",
-      onPress: () => {
-        // Navigate to addresses screen
-        console.log("Manage addresses")
-      },
+      onPress: () => navigation.navigate("AddressManagement"),
     },
     {
       icon: "receipt-outline",
@@ -41,10 +38,7 @@ export default function ProfileScreen({ navigation }) {
       icon: "help-circle-outline",
       title: "Help & Support",
       subtitle: "Get help with your orders",
-      onPress: () => {
-        // Navigate to help screen
-        console.log("Help & Support")
-      },
+      onPress: () => navigation.navigate("HelpSupport"),
     },
     {
       icon: "information-circle-outline",

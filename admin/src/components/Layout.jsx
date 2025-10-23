@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { LayoutDashboard, Package, FolderOpen, ShoppingCart, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, Package, FolderOpen, ShoppingCart, MessageCircle, LogOut, Menu, X } from "lucide-react"
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
@@ -15,6 +15,7 @@ export default function Layout({ children }) {
     { name: "Products", href: "/products", icon: Package },
     { name: "Categories", href: "/categories", icon: FolderOpen },
     { name: "Orders", href: "/orders", icon: ShoppingCart },
+    { name: "Chat Support", href: "/chat", icon: MessageCircle },
   ]
 
   const handleLogout = () => {

@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard"
 import Products from "./pages/Products"
 import Categories from "./pages/Categories"
 import Orders from "./pages/Orders"
+import ChatSupport from "./pages/ChatSupport"
 import Layout from "./components/Layout"
 import { AuthProvider, useAuth } from "./context/AuthContext"
 
@@ -38,6 +39,7 @@ function AppRoutes() {
         <Route path="/products" element={<Products />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/chat" element={<ChatSupport />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

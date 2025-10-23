@@ -9,7 +9,7 @@ router.get("/", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate({
       path: 'cart.product',
-      select: 'name price image category'
+      select: 'name price image category stock isActive'
     })
     
     if (!user) {
@@ -31,10 +31,14 @@ router.post("/add", auth, async (req, res) => {
       return res.status(400).json({ message: "Product ID is required" })
     }
 
-    // Verify product exists
+    // Verify product exists and check stock
     const product = await Product.findById(productId)
     if (!product) {
       return res.status(404).json({ message: "Product not found" })
+    }
+
+    if (!product.isActive) {
+      return res.status(400).json({ message: "Product is not available" })
     }
 
     const user = await User.findById(req.user._id)
@@ -47,9 +51,24 @@ router.post("/add", auth, async (req, res) => {
       item => item.product.toString() === productId
     )
 
+    let newQuantity = quantity
+    if (existingItemIndex > -1) {
+      // Calculate total quantity if item exists
+      newQuantity = user.cart[existingItemIndex].quantity + quantity
+    }
+
+    // Check stock availability
+    if (product.stock < newQuantity) {
+      return res.status(400).json({ 
+        message: "Insufficient stock", 
+        available: product.stock,
+        requested: newQuantity
+      })
+    }
+
     if (existingItemIndex > -1) {
       // Update quantity if item exists
-      user.cart[existingItemIndex].quantity += quantity
+      user.cart[existingItemIndex].quantity = newQuantity
     } else {
       // Add new item to cart
       user.cart.push({ product: productId, quantity })
@@ -60,7 +79,7 @@ router.post("/add", auth, async (req, res) => {
     // Populate the cart before sending response
     await user.populate({
       path: 'cart.product',
-      select: 'name price image category'
+      select: 'name price image category stock'
     })
 
     res.json({ 
@@ -98,6 +117,20 @@ router.put("/update", auth, async (req, res) => {
       // Remove item if quantity is 0
       user.cart.splice(itemIndex, 1)
     } else {
+      // Check stock availability before updating
+      const product = await Product.findById(productId)
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" })
+      }
+
+      if (product.stock < quantity) {
+        return res.status(400).json({ 
+          message: "Insufficient stock", 
+          available: product.stock,
+          requested: quantity
+        })
+      }
+
       // Update quantity
       user.cart[itemIndex].quantity = quantity
     }
@@ -107,7 +140,7 @@ router.put("/update", auth, async (req, res) => {
     // Populate the cart before sending response
     await user.populate({
       path: 'cart.product',
-      select: 'name price image category'
+      select: 'name price image category stock'
     })
 
     res.json({ 

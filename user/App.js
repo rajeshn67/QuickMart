@@ -6,6 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { AuthProvider, useAuth } from "./src/context/AuthContext"
 import { CartProvider } from "./src/context/CartContext"
+import { SocketProvider } from "./src/context/SocketContext"
 import AuthStack from "./src/navigation/AuthStack"
 import MainStack from "./src/navigation/MainStack"
 import LoadingScreen from "./src/screens/LoadingScreen"
@@ -13,29 +14,13 @@ import LoadingScreen from "./src/screens/LoadingScreen"
 const Stack = createStackNavigator()
 
 function AppContent() {
-  const [isLoading, setIsLoading] = useState(true)
-  const { user } = useAuth()
-
-  useEffect(() => {
-    checkAuthState()
-  }, [])
+  const { user, isInitialized } = useAuth()
 
   useEffect(() => {
     console.log("User state changed:", user)
   }, [user])
 
-  const checkAuthState = async () => {
-    try {
-      // Just wait a bit to let AuthContext load the user
-      await new Promise(resolve => setTimeout(resolve, 100))
-    } catch (error) {
-      console.error("Error checking auth state:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (isLoading) {
+  if (!isInitialized) {
     return <LoadingScreen />
   }
 
@@ -58,7 +43,9 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <AppContent />
+        <SocketProvider>
+          <AppContent />
+        </SocketProvider>
       </CartProvider>
     </AuthProvider>
   )

@@ -12,6 +12,8 @@ import OrderHistoryScreen from "../screens/OrderHistoryScreen"
 import LocationPickerScreen from "../screens/LocationPickerScreen"
 import EditProfileScreen from "../screens/EditProfileScreen"
 import OrderDetailScreen from "../screens/OrderDetailScreen"
+import AddressManagementScreen from "../screens/AddressManagementScreen"
+import HelpSupportScreen from "../screens/HelpSupportScreen"
 import { useCart } from "../context/CartContext"
 
 const Tab = createBottomTabNavigator()
@@ -74,6 +76,16 @@ function ProfileStack() {
       <Stack.Screen 
         name="OrderDetail" 
         component={OrderDetailScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="AddressManagement" 
+        component={AddressManagementScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="HelpSupport" 
+        component={HelpSupportScreen} 
         options={{ headerShown: false }} 
       />
     </Stack.Navigator>

@@ -116,4 +116,24 @@ export const uploadAPI = {
   },
 }
 
+// Chat API
+export const chatAPI = {
+  getAdminChats: async (params = {}) => {
+    const response = await api.get("/chat/admin", { params })
+    return response.data
+  },
+  getAdminChat: async (chatId) => {
+    const response = await api.get(`/chat/admin/${chatId}`)
+    return response.data
+  },
+  assignChat: async (chatId) => {
+    const response = await api.put(`/chat/admin/${chatId}/assign`)
+    return response.data
+  },
+  updateChatStatus: async (chatId, status) => {
+    const response = await api.put(`/chat/admin/${chatId}/status`, { status })
+    return response.data
+  },
+}
+
 export default api

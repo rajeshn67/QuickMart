@@ -27,7 +27,7 @@ api.interceptors.request.use(async (config) => {
 // Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.code === 'ECONNABORTED') {
       console.error('Request timeout:', error)
       throw new Error('Request timeout. Please check your internet connection.')
@@ -36,6 +36,31 @@ api.interceptors.response.use(
       console.error('Network error:', error)
       throw new Error('Network error. Please check your internet connection.')
     }
+    
+    // Handle 401 errors (token expired)
+    if (error.response?.status === 401) {
+      console.log('Token expired, attempting to refresh...')
+      // Don't retry auth endpoints to avoid infinite loops
+      if (!error.config?.url?.includes('/auth/')) {
+        try {
+          const token = await AsyncStorage.getItem("userToken")
+          if (token) {
+            // Try to refresh the token by calling getProfile
+            const refreshResponse = await api.get("/auth/me")
+            if (refreshResponse.data) {
+              console.log('Token refreshed successfully')
+              // Retry the original request
+              return api.request(error.config)
+            }
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError)
+          // If refresh fails, clear the token
+          await AsyncStorage.removeItem("userToken")
+        }
+      }
+    }
+    
     // Enhanced diagnostics for API errors
     const { status, data, config } = error.response
     const url = config?.baseURL ? `${config.baseURL}${config.url}` : config?.url
@@ -59,8 +84,16 @@ export const authAPI = {
     const response = await api.get("/auth/me")
     return response.data
   },
+  validateToken: async () => {
+    const response = await api.get("/auth/validate")
+    return response.data
+  },
   updateProfile: async (data) => {
     const response = await api.put("/auth/profile", data)
+    return response.data
+  },
+  updateAddress: async (addressData) => {
+    const response = await api.put("/auth/profile", { address: addressData })
     return response.data
   },
 }
@@ -149,6 +182,24 @@ export const ordersAPI = {
   },
   cancelOrder: async (orderId) => {
     const response = await api.put(`/orders/${orderId}/cancel`)
+    return response.data
+  },
+}
+
+// Chat API
+export const chatAPI = {
+  getChat: async () => {
+    const response = await api.get("/chat")
+    return response.data
+  },
+  createChat: async () => {
+    const response = await api.post("/chat")
+    return response.data
+  },
+  getChatMessages: async (chatId, page = 1, limit = 50) => {
+    const response = await api.get(`/chat/${chatId}/messages`, {
+      params: { page, limit }
+    })
     return response.data
   },
 }
