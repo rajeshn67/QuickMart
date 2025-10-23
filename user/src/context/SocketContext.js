@@ -30,15 +30,27 @@ export const SocketProvider = ({ children }) => {
   const initializeSocket = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken")
-      if (!token) return
+      if (!token) {
+        console.log("No user token found")
+        return
+      }
 
-      const socketUrl = process.env.EXPO_PUBLIC_API_URL || "https://quickmart-keqz.onrender.com"
+      // Remove /api from the URL for socket connection
+      let socketUrl = process.env.EXPO_PUBLIC_API_URL || "https://quickmart-keqz.onrender.com"
+      if (socketUrl.includes("/api")) {
+        socketUrl = socketUrl.replace("/api", "")
+      }
+      console.log("Connecting to socket:", socketUrl)
       
       const newSocket = io(socketUrl, {
         auth: {
           token: token,
         },
-        transports: ["websocket"],
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
+        timeout: 10000
       })
 
       newSocket.on("connect", () => {

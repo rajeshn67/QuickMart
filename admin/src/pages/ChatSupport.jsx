@@ -16,50 +16,80 @@ export default function ChatSupport() {
   const [isConnected, setIsConnected] = useState(false)
   const [typingUsers, setTypingUsers] = useState(new Set())
   const messagesEndRef = useRef(null)
+  const socketRef = useRef(null)
 
+  // Initialize socket once
   useEffect(() => {
     initializeSocket()
     loadChats()
+    
     return () => {
-      if (socket) {
-        socket.disconnect()
+      if (socketRef.current) {
+        socketRef.current.disconnect()
       }
     }
   }, [])
 
+  // Setup socket listeners
   useEffect(() => {
-    if (selectedChat && socket) {
-      loadChatMessages();
-      socket.emit("join_chat", selectedChat._id);
-    }
-  }, [selectedChat, socket]);
-
-  // Listen for real-time new messages for this chat and errors
-  useEffect(() => {
-    if (!socket) return;
+    if (!socket) return
 
     const handleNewMessage = (message) => {
-      // Only add message if it belongs to the current chat
-      if (selectedChat && message.chat === selectedChat._id) {
-        setMessages((prev) => [...prev, message]);
+      console.log("Received new_message:", message)
+      setMessages((prev) => {
+        const exists = prev.some(m => m._id === message._id)
+        if (exists) return prev
+        return [...prev, message]
+      })
+      loadChats()
+    }
+
+    const handleNewUserMessage = (data) => {
+      console.log("Received new_user_message:", data)
+      loadChats()
+    }
+
+    const handleUserTyping = (data) => {
+      if (data.userId !== "admin") {
+        setTypingUsers(prev => {
+          const newSet = new Set(prev)
+          if (data.isTyping) {
+            newSet.add(data.userId)
+          } else {
+            newSet.delete(data.userId)
+          }
+          return newSet
+        })
       }
-      loadChats(); // Refresh chat list for last message/unread
-    };
+    }
 
-    const handleSocketError = (err) => {
-      console.error("Socket error:", err);
-      // Optionally: show error to user (toast, alert, etc.)
-    };
+    const handleError = (err) => {
+      console.error("Socket error:", err)
+    }
 
-    socket.on("new_message", handleNewMessage);
-    socket.on("error", handleSocketError);
+    socket.on("new_message", handleNewMessage)
+    socket.on("new_user_message", handleNewUserMessage)
+    socket.on("user_typing", handleUserTyping)
+    socket.on("error", handleError)
 
     return () => {
-      socket.off("new_message", handleNewMessage);
-      socket.off("error", handleSocketError);
-    };
-  }, [socket, selectedChat]);
+      socket.off("new_message", handleNewMessage)
+      socket.off("new_user_message", handleNewUserMessage)
+      socket.off("user_typing", handleUserTyping)
+      socket.off("error", handleError)
+    }
+  }, [socket])
 
+  // Handle chat selection
+  useEffect(() => {
+    if (selectedChat && socket && socket.connected) {
+      loadChatMessages()
+      socket.emit("join_chat", selectedChat._id)
+      console.log("Joined chat:", selectedChat._id)
+    }
+  }, [selectedChat, socket])
+
+  // Auto scroll
   useEffect(() => {
     scrollToBottom()
   }, [messages])
@@ -67,47 +97,43 @@ export default function ChatSupport() {
   const initializeSocket = async () => {
     try {
       const token = localStorage.getItem("adminToken")
-      if (!token) return
+      if (!token) {
+        console.error("No admin token found")
+        return
+      }
 
-      const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:5000"
+      // Remove /api from the URL for socket connection
+      let socketUrl = import.meta.env.VITE_API_URL || "http://localhost:5000"
+      if (socketUrl.includes("/api")) {
+        socketUrl = socketUrl.replace("/api", "")
+      }
+      console.log("Connecting to socket:", socketUrl)
+      
       const newSocket = io(socketUrl, {
         auth: { token },
-        transports: ["websocket"],
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
+        timeout: 10000
       })
 
       newSocket.on("connect", () => {
-        console.log("Admin socket connected:", newSocket.id)
+        console.log("✅ Admin socket connected:", newSocket.id)
         setIsConnected(true)
       })
 
-      newSocket.on("disconnect", () => {
-        console.log("Admin socket disconnected")
+      newSocket.on("disconnect", (reason) => {
+        console.log("❌ Admin socket disconnected:", reason)
         setIsConnected(false)
       })
 
-      newSocket.on("new_user_message", (data) => {
-        console.log("New user message:", data)
-        if (selectedChat && data.chatId === selectedChat._id) {
-          setMessages(prev => [...prev, data.message])
-        }
-        // Update chat list
-        loadChats()
+      newSocket.on("connect_error", (error) => {
+        console.error("Socket connection error:", error.message)
+        setIsConnected(false)
       })
 
-      newSocket.on("user_typing", (data) => {
-        if (data.userId !== "admin") {
-          if (data.isTyping) {
-            setTypingUsers(prev => new Set([...prev, data.userId]))
-          } else {
-            setTypingUsers(prev => {
-              const newSet = new Set(prev)
-              newSet.delete(data.userId)
-              return newSet
-            })
-          }
-        }
-      })
-
+      socketRef.current = newSocket
       setSocket(newSocket)
     } catch (error) {
       console.error("Error initializing socket:", error)
@@ -151,34 +177,30 @@ export default function ChatSupport() {
   }
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedChat || sending) return;
+    if (!newMessage.trim() || !selectedChat || sending) return
+    if (!socket || !socket.connected) {
+      console.error("Socket not connected")
+      alert("Not connected to server. Please refresh the page.")
+      return
+    }
 
-    const messageText = newMessage.trim();
-    setNewMessage("");
-    setSending(true);
+    const messageText = newMessage.trim()
+    setNewMessage("")
+    setSending(true)
 
-    // Optimistically add message to UI for instant feedback
-    const optimisticMessage = {
-      chat: selectedChat._id,
-      sender: { role: "admin", fullName: "You" },
-      message: messageText,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, optimisticMessage]);
+    console.log("Sending message:", messageText, "to chat:", selectedChat._id)
 
     try {
-      if (socket) {
-        // Ensure admin joins the chat room before sending (redundant but safe)
-        socket.emit("join_chat", selectedChat._id);
-        socket.emit("send_message", {
-          chatId: selectedChat._id,
-          message: messageText,
-        });
-      }
+      socket.emit("send_message", {
+        chatId: selectedChat._id,
+        message: messageText,
+      })
+      console.log("Message sent via socket")
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message:", error)
+      alert("Failed to send message. Please try again.")
     } finally {
-      setSending(false);
+      setSending(false)
     }
   }
 

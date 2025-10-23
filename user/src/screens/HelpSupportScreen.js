@@ -56,14 +56,25 @@ export default function HelpSupportScreen({ navigation }) {
   const setupSocketListeners = () => {
     if (!socket) return
 
+    // Listen for new messages in real-time
     socket.on("new_message", (message) => {
-      setMessages(prev => [...prev, message])
+      // Avoid duplicates - check if message already exists
+      setMessages(prev => {
+        const exists = prev.some(m => m._id === message._id)
+        if (exists) return prev
+        return [...prev, message]
+      })
       scrollToBottom()
     })
 
+    // Listen for admin messages (backup listener)
     socket.on("new_admin_message", (data) => {
       if (data.chatId === chat?._id) {
-        setMessages(prev => [...prev, data.message])
+        setMessages(prev => {
+          const exists = prev.some(m => m._id === data.message._id)
+          if (exists) return prev
+          return [...prev, data.message]
+        })
         scrollToBottom()
       }
     })
@@ -81,14 +92,21 @@ export default function HelpSupportScreen({ navigation }) {
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chat || sending) return
+    if (!socket || !isConnected) {
+      Alert.alert("Error", "Not connected to server. Please check your connection.")
+      return
+    }
 
     const messageText = newMessage.trim()
     setNewMessage("")
     setSending(true)
 
+    console.log("Sending message:", messageText, "to chat:", chat._id)
+
     try {
       sendMessage(chat._id, messageText)
       sendTyping(chat._id, false)
+      console.log("Message sent via socket")
     } catch (error) {
       console.error("Error sending message:", error)
       Alert.alert("Error", "Failed to send message. Please try again.")
