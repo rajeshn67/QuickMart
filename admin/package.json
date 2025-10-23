@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "prebuild": "chmod +x node_modules/.bin/vite",
+    "postinstall": "rm -rf node_modules/vite && npm install vite",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
