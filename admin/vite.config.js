@@ -7,6 +7,6 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0', // important for Render
     port: parseInt(process.env.PORT) || 10000, // Render sets PORT
-    allowedHosts: ['quickmart-ftik.onrender.com'], // your Render domain
+    allowedHosts: ['quickmart-admin.onrender.com'], // your Render domain
   },
 })
