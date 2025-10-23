@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator } from "react-native"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator, Dimensions } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useAuth } from "../context/AuthContext"
 import { productsAPI, categoriesAPI } from "../services/api"
 import ProductCard from "../components/ProductCard"
 import CategoryCard from "../components/CategoryCard"
+import * as Location from 'expo-location'
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth()
@@ -16,6 +17,8 @@ export default function HomeScreen({ navigation }) {
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [location, setLocation] = useState(null)
+  const [locationName, setLocationName] = useState('Select Location')
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours()
@@ -30,7 +33,35 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     loadData()
+    getCurrentLocation()
   }, [])
+
+  const getCurrentLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        setError('Permission to access location was denied')
+        return
+      }
+
+      let location = await Location.getCurrentPositionAsync({})
+      setLocation(location)
+      
+      // Get address from coordinates
+      const address = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      })
+      
+      if (address.length > 0) {
+        const { city, region, country } = address[0]
+        setLocationName(`${city || ''}${city && region ? ', ' : ''}${region || ''}`.trim() || 'Current Location')
+      }
+    } catch (error) {
+      console.error('Error getting location:', error)
+      setError('Unable to get current location')
+    }
+  }
 
   const loadData = async () => {
     setLoading(true)
@@ -68,9 +99,22 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
             <Text style={styles.userName}>{user?.fullName || "User"}</Text>
           </View>
-          <TouchableOpacity style={styles.locationButton}>
+          <TouchableOpacity 
+            style={styles.locationButton}
+            onPress={() => navigation.navigate('LocationPicker', {
+              onLocationSelect: (selectedLocation) => {
+                if (selectedLocation) {
+                  setLocation(selectedLocation)
+                  setLocationName(selectedLocation.name || 'Selected Location')
+                }
+              }
+            })}
+          >
             <Ionicons name="location-outline" size={20} color="#4CAF50" />
-            <Text style={styles.locationText}>Select Location</Text>
+            <Text style={styles.locationText} numberOfLines={1} ellipsizeMode="tail">
+              {locationName}
+            </Text>
+            <Ionicons name="chevron-down" size={16} color="#666" />
           </TouchableOpacity>
         </View>
 
@@ -111,14 +155,14 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Categories</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Categories')}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
-              data={categories}
+              data={categories.slice(0, 6)} // Show only first 6 categories in home
               keyExtractor={(item) => item._id}
               renderItem={({ item }) => (
                 <CategoryCard
@@ -136,20 +180,21 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Featured Products</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('AllProducts')}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={featuredProducts}
-              keyExtractor={(item) => item._id}
-              renderItem={({ item }) => (
-                <ProductCard product={item} onPress={() => navigation.navigate("ProductDetail", { product: item })} />
-              )}
-              contentContainerStyle={styles.productsList}
-            />
+            <View style={styles.productsGrid}>
+              {featuredProducts.map((item) => (
+                <View key={item._id} style={styles.productItem}>
+                  <ProductCard 
+                    product={item} 
+                    onPress={() => navigation.navigate("ProductDetail", { product: item })}
+                    style={styles.productCard}
+                  />
+                </View>
+              ))}
+            </View>
           </View>
         )}
 
@@ -246,9 +291,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
-  productsList: {
-    paddingHorizontal: 16,
-    gap: 12,
+  productsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+  },
+  productItem: {
+    width: '31%',
+    marginBottom: 12,
+  },
+  productCard: {
+    width: '100%',
+    margin: 0,
   },
   bannerContainer: {
     paddingHorizontal: 16,

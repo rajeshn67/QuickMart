@@ -9,11 +9,13 @@ import ProductDetailScreen from "../screens/ProductDetailScreen"
 import CategoryProductsScreen from "../screens/CategoryProductsScreen"
 import CheckoutScreen from "../screens/CheckoutScreen"
 import OrderHistoryScreen from "../screens/OrderHistoryScreen"
-import LocationPickerScreen from "../screens/LocationPickerScreen"
+import LocationPickerScreen from "../screens/LocationPicker"
 import EditProfileScreen from "../screens/EditProfileScreen"
 import OrderDetailScreen from "../screens/OrderDetailScreen"
 import AddressManagementScreen from "../screens/AddressManagementScreen"
 import HelpSupportScreen from "../screens/HelpSupportScreen"
+import CategoriesScreen from "../screens/CategoriesScreen"
+import AllProductsScreen from "../screens/AllProductsScreen"
 import { useCart } from "../context/CartContext"
 
 const Tab = createBottomTabNavigator()
@@ -37,6 +39,33 @@ function HomeStack() {
         component={CategoryProductsScreen} 
         options={{ 
           title: "Products",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
+      <Stack.Screen 
+        name="Categories" 
+        component={CategoriesScreen} 
+        options={{ 
+          title: "All Categories",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
+      <Stack.Screen 
+        name="AllProducts" 
+        component={AllProductsScreen} 
+        options={{ 
+          title: "All Products",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
+      <Stack.Screen 
+        name="LocationPicker" 
+        component={LocationPickerScreen} 
+        options={{ 
+          title: "Select Location",
           headerStyle: { backgroundColor: "#fff" },
           headerTintColor: "#333",
         }} 
