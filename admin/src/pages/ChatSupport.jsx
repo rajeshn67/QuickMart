@@ -34,7 +34,7 @@ export default function ChatSupport() {
     }
   }, [selectedChat, socket]);
 
-  // Listen for real-time new messages for this chat
+  // Listen for real-time new messages for this chat and errors
   useEffect(() => {
     if (!socket) return;
 
@@ -46,10 +46,17 @@ export default function ChatSupport() {
       loadChats(); // Refresh chat list for last message/unread
     };
 
+    const handleSocketError = (err) => {
+      console.error("Socket error:", err);
+      // Optionally: show error to user (toast, alert, etc.)
+    };
+
     socket.on("new_message", handleNewMessage);
+    socket.on("error", handleSocketError);
 
     return () => {
       socket.off("new_message", handleNewMessage);
+      socket.off("error", handleSocketError);
     };
   }, [socket, selectedChat]);
 
@@ -144,23 +151,34 @@ export default function ChatSupport() {
   }
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedChat || sending) return
+    if (!newMessage.trim() || !selectedChat || sending) return;
 
-    const messageText = newMessage.trim()
-    setNewMessage("")
-    setSending(true)
+    const messageText = newMessage.trim();
+    setNewMessage("");
+    setSending(true);
+
+    // Optimistically add message to UI for instant feedback
+    const optimisticMessage = {
+      chat: selectedChat._id,
+      sender: { role: "admin", fullName: "You" },
+      message: messageText,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimisticMessage]);
 
     try {
       if (socket) {
+        // Ensure admin joins the chat room before sending (redundant but safe)
+        socket.emit("join_chat", selectedChat._id);
         socket.emit("send_message", {
           chatId: selectedChat._id,
           message: messageText,
-        })
+        });
       }
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("Error sending message:", error);
     } finally {
-      setSending(false)
+      setSending(false);
     }
   }
 
