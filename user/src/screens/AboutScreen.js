@@ -23,7 +23,7 @@ export default function AboutScreen() {
           </View>
           <View style={styles.founderCard}>
             <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+              source={{ uri: "https://res.cloudinary.com/dfeqguc5t/image/upload/v1756914601/quickmart/profiles/yeqr6kw4df26outyf8pz.jpg" }}
               style={styles.founderImage}
             />
             <Text style={styles.founderName}>Amit Sharma</Text>
