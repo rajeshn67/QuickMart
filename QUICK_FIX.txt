@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════════════
+  GOOGLE SIGN-IN ERROR 400 - QUICK FIX
+═══════════════════════════════════════════════════════════════
+
+ERROR: "Access blocked: Authorization Error - Error 400: invalid_request"
+
+CAUSE: Missing or incorrect Google OAuth configuration
+
+═══════════════════════════════════════════════════════════════
+  SOLUTION (5 MINUTES)
+═══════════════════════════════════════════════════════════════
+
+1. GO TO: https://console.cloud.google.com/
+
+2. CREATE OAUTH CONSENT SCREEN:
+   ✓ APIs & Services > OAuth consent screen
+   ✓ External user type
+   ✓ Add test user: rajeshnarwade67@gmail.com
+   ✓ Save
+
+3. CREATE WEB CLIENT ID:
+   ✓ APIs & Services > Credentials
+   ✓ Create Credentials > OAuth client ID
+   ✓ Type: Web application
+   ✓ Redirect URI: https://auth.expo.io/@rajeshn67/quickmart-user
+   ✓ Copy the Client ID
+
+4. CREATE .env FILE:
+   Location: user/.env
+   
+   EXPO_PUBLIC_API_URL=http://YOUR_IP:5000/api
+   EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
+   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
+   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
+   
+   (Use the SAME Web Client ID for all three!)
+
+5. RESTART APP:
+   cd user
+   npx expo start -c
+
+═══════════════════════════════════════════════════════════════
+  KEY POINTS
+═══════════════════════════════════════════════════════════════
+
+✓ Use WEB Client ID (not Android/iOS) for Expo development
+✓ Add yourself as test user in OAuth consent screen
+✓ Redirect URI must be EXACT: https://auth.expo.io/@rajeshn67/quickmart-user
+✓ Clear cache when restarting: npx expo start -c
+
+═══════════════════════════════════════════════════════════════
+
+For detailed instructions, see: GOOGLE_AUTH_FIX.md

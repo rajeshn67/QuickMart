@@ -120,6 +120,67 @@ router.get("/validate", auth, async (req, res) => {
   }
 })
 
+// Google authentication
+router.post("/google", async (req, res) => {
+  try {
+    const { googleId, email, fullName, profileImage } = req.body
+
+    if (!googleId || !email) {
+      return res.status(400).json({ message: "Google ID and email are required" })
+    }
+
+    // Check if user exists with this Google ID
+    let user = await User.findOne({ googleId })
+
+    if (!user) {
+      // Check if user exists with this email (from regular registration)
+      user = await User.findOne({ email })
+
+      if (user) {
+        // Link Google account to existing user
+        user.googleId = googleId
+        user.authProvider = "google"
+        if (profileImage && !user.profileImage) {
+          user.profileImage = profileImage
+        }
+        await user.save()
+      } else {
+        // Create new user with Google authentication
+        user = new User({
+          fullName,
+          email,
+          googleId,
+          authProvider: "google",
+          profileImage: profileImage || "",
+          password: Math.random().toString(36).slice(-8), // Random password (won't be used)
+        })
+        await user.save()
+      }
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" })
+
+    res.json({
+      message: "Google authentication successful",
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+        phone: user.phone,
+        address: user.address,
+        authProvider: user.authProvider,
+      },
+    })
+  } catch (error) {
+    console.error("Google auth error:", error)
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+})
+
 // Update user profile
 router.put("/profile", auth, async (req, res) => {
   try {

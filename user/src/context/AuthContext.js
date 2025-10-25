@@ -3,7 +3,11 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react"
 import { AppState } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import * as Google from "expo-auth-session/providers/google"
+import * as WebBrowser from "expo-web-browser"
 import { authAPI } from "../services/api"
+
+WebBrowser.maybeCompleteAuthSession()
 
 const AuthContext = createContext()
 
@@ -21,10 +25,25 @@ export const AuthProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false)
   const userRef = useRef(null)
 
+  // Google Sign-In configuration
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  })
+
   // Keep ref in sync with user state
   useEffect(() => {
     userRef.current = user
   }, [user])
+
+  // Handle Google Sign-In response
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response
+      handleGoogleAuthentication(authentication.accessToken)
+    }
+  }, [response])
 
   useEffect(() => {
     loadUser()
@@ -198,6 +217,61 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const loginWithGoogle = async () => {
+    try {
+      const result = await promptAsync()
+      if (result?.type === "success") {
+        return { success: true }
+      } else if (result?.type === "cancel") {
+        return { success: false, error: "Sign-in was cancelled" }
+      }
+      return { success: false, error: "Failed to sign in with Google" }
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      return { success: false, error: "Failed to sign in with Google" }
+    }
+  }
+
+  const handleGoogleAuthentication = async (accessToken) => {
+    setLoading(true)
+    try {
+      // Get user info from Google
+      const userInfoResponse = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      const googleUser = await userInfoResponse.json()
+
+      // Send to backend for authentication
+      const response = await authAPI.googleLogin({
+        googleId: googleUser.id,
+        email: googleUser.email,
+        fullName: googleUser.name,
+        profileImage: googleUser.picture,
+      })
+
+      if (!response.token || !response.user) {
+        throw new Error("Invalid response from server")
+      }
+
+      // Store token with expiration info
+      const tokenData = {
+        token: response.token,
+        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days from now
+        user: response.user,
+      }
+
+      await AsyncStorage.setItem("userToken", response.token)
+      await AsyncStorage.setItem("userTokenData", JSON.stringify(tokenData))
+      setUser(response.user)
+      console.log("Google user authenticated:", response.user)
+    } catch (error) {
+      console.error("Google authentication error:", error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const logout = async () => {
     try {
       // Clear all authentication data
@@ -260,6 +334,7 @@ export const AuthProvider = ({ children }) => {
     isInitialized,
     login,
     register,
+    loginWithGoogle,
     logout,
     updateProfile,
     refreshToken,

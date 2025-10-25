@@ -10,13 +10,16 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../context/AuthContext"
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const { login, loading } = useAuth()
+  const { login, loginWithGoogle, loading } = useAuth()
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -27,6 +30,20 @@ export default function LoginScreen({ navigation }) {
     const result = await login(email, password)
     if (!result.success) {
       Alert.alert("Login Failed", result.error)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true)
+    try {
+      const result = await loginWithGoogle()
+      if (!result.success) {
+        Alert.alert("Google Sign-In Failed", result.error)
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to sign in with Google")
+    } finally {
+      setGoogleLoading(false)
     }
   }
 
@@ -60,6 +77,27 @@ export default function LoginScreen({ navigation }) {
             disabled={loading}
           >
             <Text style={styles.buttonText}>{loading ? "Signing In..." : "Sign In"}</Text>
+          </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.divider} />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
+            onPress={handleGoogleSignIn}
+            disabled={googleLoading || loading}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={20} color="#fff" style={styles.googleIcon} />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate("Register")}>
@@ -125,5 +163,36 @@ const styles = StyleSheet.create({
   linkText: {
     color: "#4CAF50",
     fontSize: 14,
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: "#666",
+    fontSize: 14,
+  },
+  googleButton: {
+    backgroundColor: "#DB4437",
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  googleIcon: {
+    marginRight: 8,
+  },
+  googleButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 })
