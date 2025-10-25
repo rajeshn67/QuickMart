@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useRef } from "react"
 import { AppState } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { authAPI } from "../services/api"
@@ -19,21 +19,27 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const userRef = useRef(null)
+
+  // Keep ref in sync with user state
+  useEffect(() => {
+    userRef.current = user
+  }, [user])
 
   useEffect(() => {
     loadUser()
     
     // Set up periodic token refresh (every 6 hours)
     const refreshInterval = setInterval(async () => {
-      if (user) {
+      if (userRef.current) {
         console.log("Performing background token refresh...")
         await refreshToken()
       }
     }, 6 * 60 * 60 * 1000) // 6 hours
 
     // Set up app state change listener to refresh token when app becomes active
-    const handleAppStateChange = async () => {
-      if (user) {
+    const handleAppStateChange = async (nextAppState) => {
+      if (nextAppState === 'active' && userRef.current) {
         console.log("App became active, refreshing token...")
         await refreshToken()
       }
@@ -46,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       clearInterval(refreshInterval)
       subscription?.remove()
     }
-  }, [user])
+  }, [])
 
   const loadUser = async () => {
     try {

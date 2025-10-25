@@ -294,12 +294,12 @@ const styles = StyleSheet.create({
   productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   productItem: {
-    width: '31%',
-    marginBottom: 12,
+    width: '31.5%',
+    marginBottom: 8,
   },
   productCard: {
     width: '100%',

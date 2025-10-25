@@ -42,7 +42,7 @@ export default function ProductCard({ product, onPress }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: 160,
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 12,
     shadowColor: "#000",
@@ -53,23 +53,25 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 120,
+    height: 100,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
+    resizeMode: "cover",
   },
   content: {
-    padding: 12,
+    padding: 8,
   },
   name: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
+    marginBottom: 2,
+    minHeight: 32,
   },
   unit: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#666",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   footer: {
     flexDirection: "row",
@@ -77,20 +79,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   price: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#333",
   },
   originalPrice: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#666",
     textDecorationLine: "line-through",
   },
   addButton: {
     backgroundColor: "#4CAF50",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
   },
