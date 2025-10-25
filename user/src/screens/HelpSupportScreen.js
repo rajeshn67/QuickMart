@@ -139,12 +139,17 @@ export default function HelpSupportScreen({ navigation }) {
     return (
       <View style={[
         styles.messageContainer,
-        isUser ? styles.userMessage : styles.adminMessage
+        isUser ? styles.userMessageContainer : styles.adminMessageContainer
       ]}>
         <View style={[
           styles.messageBubble,
           isUser ? styles.userBubble : styles.adminBubble
         ]}>
+          {!isUser && (
+            <Text style={styles.senderName}>
+              {isAdmin ? "Admin" : item.sender.fullName}
+            </Text>
+          )}
           <Text style={[
             styles.messageText,
             isUser ? styles.userMessageText : styles.adminMessageText
@@ -161,11 +166,6 @@ export default function HelpSupportScreen({ navigation }) {
             })}
           </Text>
         </View>
-        {!isUser && (
-          <Text style={styles.senderName}>
-            {isAdmin ? "Admin" : item.sender.fullName}
-          </Text>
-        )}
       </View>
     )
   }
@@ -316,61 +316,71 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     flex: 1,
+    backgroundColor: "#ECE5DD",
   },
   messagesList: {
     flex: 1,
+    backgroundColor: "#ECE5DD",
   },
   messagesContent: {
     padding: 16,
   },
   messageContainer: {
-    marginBottom: 16,
+    marginBottom: 8,
+    width: "100%",
+    flexDirection: "row",
   },
-  userMessage: {
-    alignItems: "flex-end",
+  userMessageContainer: {
+    justifyContent: "flex-end",
   },
-  adminMessage: {
-    alignItems: "flex-start",
+  adminMessageContainer: {
+    justifyContent: "flex-start",
   },
   messageBubble: {
-    maxWidth: "80%",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    maxWidth: "75%",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   userBubble: {
-    backgroundColor: "#4CAF50",
-    borderBottomRightRadius: 4,
+    backgroundColor: "#DCF8C6",
+    borderTopRightRadius: 0,
   },
   adminBubble: {
-    backgroundColor: "#f1f3f4",
-    borderBottomLeftRadius: 4,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 0,
   },
   messageText: {
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 20,
+    marginBottom: 4,
   },
   userMessageText: {
-    color: "#fff",
+    color: "#000",
   },
   adminMessageText: {
-    color: "#333",
+    color: "#000",
   },
   messageTime: {
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: 11,
+    alignSelf: "flex-end",
   },
   userMessageTime: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "#667781",
   },
   adminMessageTime: {
-    color: "#666",
+    color: "#667781",
   },
   senderName: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
-    marginLeft: 16,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#4CAF50",
+    marginBottom: 4,
   },
   typingContainer: {
     paddingVertical: 8,
