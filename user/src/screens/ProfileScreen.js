@@ -43,7 +43,7 @@ export default function ProfileScreen({ navigation }) {
     {
       icon: "information-circle-outline",
       title: "About",
-      subtitle: "App version and information",
+      subtitle: "App Details and Info",
       onPress: () => navigation.navigate("About"),
     },
   ]

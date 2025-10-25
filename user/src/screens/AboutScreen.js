@@ -1,5 +1,7 @@
 import { View, Text, StyleSheet, Image, ScrollView } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import Rohitpng from "../../assets/rohit.jpg"
+import Rajeshpng from "../../assets/rajeshphoto.jpg"
 
 export default function AboutScreen() {
   return (
@@ -13,22 +15,16 @@ export default function AboutScreen() {
         <Text style={styles.sectionTitle}>Founders</Text>
         <View style={styles.foundersRow}>
           <View style={styles.founderCard}>
-            <Image
-              source={{ uri: "https://res.cloudinary.com/dfeqguc5t/image/upload/v1756914601/quickmart/profiles/yeqr6kw4df26outyf8pz.jpg" }}
-              style={styles.founderImage}
-            />
-            <Text style={styles.founderName}>Rajesh Narwade</Text>
+            <Image style={styles.founderImage} source={Rohitpng} />
+            <Text style={styles.founderName}>Rohit Ranveer</Text>
             <Text style={styles.founderRole}>Founder</Text>
-            <Text style={styles.founderDesc}>Rajesh is passionate about building tech that solves real-world problems. With a background in software engineering, he leads the QuickMart vision for smarter, faster grocery delivery.</Text>
+            <Text style={styles.founderDesc}>Rohit is passionate about building tech that solves real-world problems. With a background in software engineering, he leads the QuickMart vision for smarter, faster grocery delivery.</Text>
           </View>
           <View style={styles.founderCard}>
-            <Image
-              source={{ uri: "https://res.cloudinary.com/dfeqguc5t/image/upload/v1756914601/quickmart/profiles/yeqr6kw4df26outyf8pz.jpg" }}
-              style={styles.founderImage}
-            />
-            <Text style={styles.founderName}>Amit Sharma</Text>
+            <Image style={styles.founderImage} source={Rajeshpng} />
+            <Text style={styles.founderName}>Rajesh Narwade</Text>
             <Text style={styles.founderRole}>Co-Founder</Text>
-            <Text style={styles.founderDesc}>Amit specializes in operations and customer experience. He ensures every QuickMart order is delivered with speed and care, making your shopping effortless.</Text>
+            <Text style={styles.founderDesc}>Rajesh specializes in operations and customer experience. He ensures every QuickMart order is delivered with speed and care, making your shopping effortless.</Text>
           </View>
         </View>
       </ScrollView>

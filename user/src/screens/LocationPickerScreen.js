@@ -34,12 +34,15 @@ export default function LocationPickerScreen({ navigation, route }) {
             { text: "Settings", onPress: () => Linking.openSettings() }
           ]
         )
+        setLoading(false)
         return
       }
 
+      // Use faster location settings with shorter timeout
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
-        timeout: 10000,
+        maximumAge: 10000, // Use cached location if less than 10 seconds old
+        timeout: 5000, // Reduced timeout for faster response
       })
       
       const newRegion = {
@@ -54,31 +57,31 @@ export default function LocationPickerScreen({ navigation, route }) {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       })
+      setLoading(false) // Stop loading immediately after getting location
 
-      // Get address from coordinates
-      try {
-        const addressResult = await Location.reverseGeocodeAsync({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        })
-
+      // Get address from coordinates asynchronously (don't block UI)
+      Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      }).then(addressResult => {
         if (addressResult.length > 0) {
           const addr = addressResult[0]
           setAddress(`${addr.street || ""} ${addr.city || ""} ${addr.region || ""} ${addr.postalCode || ""}`.trim())
         }
-      } catch (addressError) {
+      }).catch(addressError => {
         console.error("Error getting address:", addressError)
         // Continue without address, user can enter manually
-      }
+      })
     } catch (error) {
       console.error("Error getting location:", error)
+      setLoading(false)
       if (error.code === 'UNAVAILABLE') {
         Alert.alert("Location Unavailable", "Unable to get your current location. Please select a location on the map manually.")
+      } else if (error.code === 'TIMEOUT') {
+        Alert.alert("Location Timeout", "Getting location is taking too long. Please select a location on the map manually.")
       } else {
         Alert.alert("Error", "Failed to get current location. Please select a location on the map manually.")
       }
-    } finally {
-      setLoading(false)
     }
   }
 

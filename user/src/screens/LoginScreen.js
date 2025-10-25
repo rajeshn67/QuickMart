@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   googleButton: {
-    backgroundColor: "#DB4437",
+    backgroundColor: "#180f0fff",
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: "center",

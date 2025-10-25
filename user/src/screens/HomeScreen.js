@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator, Dimensions } from "react-native"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator, Dimensions, Image } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useAuth } from "../context/AuthContext"
 import { productsAPI, categoriesAPI } from "../services/api"
 import ProductCard from "../components/ProductCard"
 import CategoryCard from "../components/CategoryCard"
-import * as Location from 'expo-location'
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth()
@@ -17,8 +16,6 @@ export default function HomeScreen({ navigation }) {
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [location, setLocation] = useState(null)
-  const [locationName, setLocationName] = useState('Select Location')
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours()
@@ -33,34 +30,15 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     loadData()
-    getCurrentLocation()
   }, [])
 
-  const getCurrentLocation = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        setError('Permission to access location was denied')
-        return
-      }
-
-      let location = await Location.getCurrentPositionAsync({})
-      setLocation(location)
-      
-      // Get address from coordinates
-      const address = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      })
-      
-      if (address.length > 0) {
-        const { city, region, country } = address[0]
-        setLocationName(`${city || ''}${city && region ? ', ' : ''}${region || ''}`.trim() || 'Current Location')
-      }
-    } catch (error) {
-      console.error('Error getting location:', error)
-      setError('Unable to get current location')
+  const getInitials = (name) => {
+    if (!name) return 'U'
+    const names = name.split(' ')
+    if (names.length >= 2) {
+      return (names[0][0] + names[names.length - 1][0]).toUpperCase()
     }
+    return name.substring(0, 2).toUpperCase()
   }
 
   const loadData = async () => {
@@ -95,26 +73,26 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={styles.greetingContainer}>
             <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
             <Text style={styles.userName}>{user?.fullName || "User"}</Text>
           </View>
           <TouchableOpacity 
-            style={styles.locationButton}
-            onPress={() => navigation.navigate('LocationPicker', {
-              onLocationSelect: (selectedLocation) => {
-                if (selectedLocation) {
-                  setLocation(selectedLocation)
-                  setLocationName(selectedLocation.name || 'Selected Location')
-                }
-              }
-            })}
+            style={styles.profileButton}
+            onPress={() => navigation.navigate('Profile')}
           >
-            <Ionicons name="location-outline" size={20} color="#4CAF50" />
-            <Text style={styles.locationText} numberOfLines={1} ellipsizeMode="tail">
-              {locationName}
-            </Text>
-            <Ionicons name="chevron-down" size={16} color="#666" />
+            {user?.profileImage ? (
+              <Image 
+                source={{ uri: user.profileImage }} 
+                style={styles.profileImage}
+              />
+            ) : (
+              <View style={styles.profilePlaceholder}>
+                <Text style={styles.profileInitials}>
+                  {getInitials(user?.fullName)}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -231,25 +209,44 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  greetingContainer: {
+    flex: 1,
   },
   greeting: {
     fontSize: 14,
     color: "#666",
   },
   userName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#333",
   },
-  locationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+  profileButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    overflow: 'hidden',
   },
-  locationText: {
-    fontSize: 14,
-    color: "#4CAF50",
+  profileImage: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+  },
+  profilePlaceholder: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileInitials: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
   searchContainer: {
     paddingHorizontal: 16,

@@ -1,150 +1,225 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
 
-const locations = [
-  { id: 'current', name: 'Use Current Location', icon: 'navigate-circle' },
-  { id: 'home', name: 'Home', icon: 'home', address: '123 Main St, City' },
-  { id: 'work', name: 'Work', icon: 'briefcase', address: '456 Business Ave, City' },
-  { id: 'other', name: 'Add New Address', icon: 'add-circle' },
-];
-
 const LocationPicker = ({ route }) => {
   const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [address, setAddress] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [fetchingAddress, setFetchingAddress] = useState(false);
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
 
   const getCurrentLocation = async () => {
     setLoading(true);
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        alert('Permission to access location was denied');
+        Alert.alert('Permission Denied', 'Location permission is required to select delivery address.');
+        setLoading(false);
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
-      const address = await Location.reverseGeocodeAsync({
+      // Use faster location settings
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        maximumAge: 10000, // Use cached location if less than 10 seconds old
+        timeout: 5000, // Timeout after 5 seconds
+      });
+      
+      const newRegion = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      };
+
+      setRegion(newRegion);
+      setSelectedLocation({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
+      setLoading(false);
       
-      if (address.length > 0) {
-        const { city, region, name, street } = address[0];
-        const locationName = `${street || name || ''}${(street || name) && city ? ', ' : ''}${city || ''}`.trim();
-        setCurrentLocation({
-          ...location,
-          name: locationName || 'Current Location',
-          address: [street, city, region].filter(Boolean).join(', ')
-        });
-      }
+      // Get address in background
+      setFetchingAddress(true);
+      Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      }).then(addressResult => {
+        if (addressResult.length > 0) {
+          const addr = addressResult[0];
+          // Format address as: street, city, state postalCode
+          const formattedAddress = [
+            addr.street || addr.name,
+            addr.city,
+            addr.region,
+            addr.postalCode
+          ].filter(Boolean).join(', ');
+          setAddress(formattedAddress || 'Address unavailable');
+        }
+        setFetchingAddress(false);
+      }).catch(err => {
+        console.error('Error reverse geocoding:', err);
+        setAddress('Address unavailable');
+        setFetchingAddress(false);
+      });
     } catch (error) {
       console.error('Error getting location:', error);
-      alert('Unable to get current location');
-    } finally {
+      Alert.alert('Error', 'Unable to get current location. Please select manually on the map.');
       setLoading(false);
     }
   };
 
-  const handleSelectLocation = (location) => {
-    if (location.id === 'current') {
-      if (currentLocation) {
-        route.params?.onLocationSelect?.(currentLocation);
-        navigation.goBack();
-      } else {
-        getCurrentLocation().then(() => {
-          if (currentLocation) {
-            route.params?.onLocationSelect?.(currentLocation);
-            navigation.goBack();
-          }
-        });
+  const handleMapPress = async (event) => {
+    const coordinate = event.nativeEvent.coordinate;
+    setSelectedLocation(coordinate);
+    setFetchingAddress(true);
+
+    try {
+      const addressResult = await Location.reverseGeocodeAsync(coordinate);
+      if (addressResult.length > 0) {
+        const addr = addressResult[0];
+        // Format address as: street, city, state postalCode
+        const formattedAddress = [
+          addr.street || addr.name,
+          addr.city,
+          addr.region,
+          addr.postalCode
+        ].filter(Boolean).join(', ');
+        setAddress(formattedAddress || 'Address unavailable');
       }
-    } else if (location.id === 'other') {
-      // Navigate to address search screen
-      navigation.navigate('SearchAddress', {
-        onSelect: (selectedAddress) => {
-          route.params?.onLocationSelect?.({
-            name: selectedAddress.name,
-            address: selectedAddress.address,
-            coords: selectedAddress.coords
-          });
-          navigation.goBack();
-        }
-      });
-    } else {
-      // For saved locations
-      route.params?.onLocationSelect?.({
-        name: location.name,
-        address: location.address,
-        coords: location.coords
-      });
-      navigation.goBack();
+    } catch (error) {
+      console.error('Error getting address:', error);
+      setAddress('Address unavailable');
+    } finally {
+      setFetchingAddress(false);
     }
   };
 
-  const renderLocationItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.locationItem}
-      onPress={() => handleSelectLocation(item)}
-    >
-      <Ionicons 
-        name={item.icon} 
-        size={24} 
-        color={item.id === 'current' ? '#4CAF50' : '#666'} 
-        style={styles.locationIcon}
-      />
-      <View style={styles.locationTextContainer}>
-        <Text style={[
-          styles.locationName, 
-          item.id === 'current' && styles.currentLocation
-        ]}>
-          {item.name}
-        </Text>
-        {item.address && (
-          <Text style={styles.locationAddress} numberOfLines={1}>
-            {item.address}
-          </Text>
-        )}
+  const handleConfirmLocation = () => {
+    if (!selectedLocation) {
+      Alert.alert('Error', 'Please select a location on the map');
+      return;
+    }
+
+    if (!address || address === 'Address unavailable') {
+      Alert.alert('Error', 'Please wait for the address to load or enter it manually');
+      return;
+    }
+
+    // Parse address into components
+    // Expected format: "street, city, state, postalCode"
+    const addressParts = address.split(',').map(part => part.trim());
+    
+    const locationData = {
+      coordinates: {
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+      },
+      address: address,
+      street: addressParts[0] || 'N/A',
+      city: addressParts[1] || 'N/A',
+      state: addressParts[2] || 'N/A',
+      zipCode: addressParts[3] || '000000',
+    };
+
+    // Check if callback exists (for other screens)
+    if (route.params?.onLocationSelect) {
+      route.params.onLocationSelect(locationData);
+      navigation.goBack();
+    } else {
+      // Navigate back to Checkout with locationData
+      navigation.navigate('Checkout', { locationData });
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    getCurrentLocation();
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text style={styles.loadingText}>Getting your location...</Text>
       </View>
-      {item.id === 'current' && loading && (
-        <ActivityIndicator size="small" color="#4CAF50" style={styles.loading} />
-      )}
-    </TouchableOpacity>
-  );
+    );
+  }
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Location</Text>
-        <View style={styles.headerRight} />
-      </View>
-      
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search for area, street name..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor="#999"
-        />
+        <Text style={styles.headerTitle}>Select Delivery Location</Text>
+        <TouchableOpacity onPress={handleUseCurrentLocation} style={styles.locationButton}>
+          <Ionicons name="navigate" size={24} color="#4CAF50" />
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={locations}
-        renderItem={renderLocationItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={
-          <Text style={styles.sectionTitle}>SAVED ADDRESSES</Text>
-        }
-      />
+      {/* Map */}
+      <MapView
+        style={styles.map}
+        region={region}
+        onPress={handleMapPress}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
+      >
+        {selectedLocation && (
+          <Marker
+            coordinate={selectedLocation}
+            title="Delivery Location"
+            pinColor="#4CAF50"
+          />
+        )}
+      </MapView>
+
+      {/* Address Card */}
+      <View style={styles.addressCard}>
+        <View style={styles.addressHeader}>
+          <Ionicons name="location" size={24} color="#4CAF50" />
+          <Text style={styles.addressTitle}>Delivery Address</Text>
+        </View>
+        
+        {fetchingAddress ? (
+          <View style={styles.fetchingContainer}>
+            <ActivityIndicator size="small" color="#4CAF50" />
+            <Text style={styles.fetchingText}>Getting address...</Text>
+          </View>
+        ) : (
+          <TextInput
+            style={styles.addressInput}
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Tap on map to select location"
+            placeholderTextColor="#999"
+            multiline
+          />
+        )}
+
+        <TouchableOpacity
+          style={[styles.confirmButton, !selectedLocation && styles.confirmButtonDisabled]}
+          onPress={handleConfirmLocation}
+          disabled={!selectedLocation}
+        >
+          <Text style={styles.confirmButtonText}>Confirm Location</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -154,12 +229,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    zIndex: 10,
   },
   backButton: {
     padding: 4,
@@ -169,73 +257,74 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 16,
     flex: 1,
+    color: '#333',
   },
-  headerRight: {
-    width: 32,
+  locationButton: {
+    padding: 4,
   },
-  searchContainer: {
+  map: {
+    flex: 1,
+  },
+  addressCard: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  addressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    margin: 16,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-    paddingVertical: 0,
-  },
-  listContainer: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
     marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
-  locationItem: {
+  addressTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
+  },
+  fetchingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 12,
   },
-  locationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  locationTextContainer: {
-    flex: 1,
-  },
-  locationName: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 2,
-  },
-  currentLocation: {
-    color: '#4CAF50',
-    fontWeight: '600',
-  },
-  locationAddress: {
+  fetchingText: {
+    marginLeft: 8,
     fontSize: 14,
     color: '#666',
   },
-  loading: {
-    marginLeft: 8,
+  addressInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#333',
+    minHeight: 60,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  confirmButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

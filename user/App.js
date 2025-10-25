@@ -10,15 +10,21 @@ import { SocketProvider } from "./src/context/SocketContext"
 import AuthStack from "./src/navigation/AuthStack"
 import MainStack from "./src/navigation/MainStack"
 import LoadingScreen from "./src/screens/LoadingScreen"
+import SplashScreen from "./src/screens/SplashScreen"
 
 const Stack = createStackNavigator()
 
 function AppContent() {
   const { user, isInitialized } = useAuth()
+  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
     console.log("User state changed:", user)
   }, [user])
+
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />
+  }
 
   if (!isInitialized) {
     return <LoadingScreen />

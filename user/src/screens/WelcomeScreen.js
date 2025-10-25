@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native"
-import cartImg from "../../assets/logo.jpg"
+import cartImg from "../../assets/icon.png"
 
 export default function WelcomeScreen({ navigation }) {
   return (
@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
   logo: {
     width: 200,
     height: 200,
-    marginBottom: 1,
+    marginBottom: 5,
   },
 
   subtitle: {
-    fontSize: 16,
+    fontSize: 27,
     color: "#666",
     textAlign: "center",
-    marginBottom: 48,
+    marginBottom: 40,
   },
   buttonContainer: {
     width: "100%",
