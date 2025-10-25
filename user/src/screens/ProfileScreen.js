@@ -44,10 +44,7 @@ export default function ProfileScreen({ navigation }) {
       icon: "information-circle-outline",
       title: "About",
       subtitle: "App version and information",
-      onPress: () => {
-        // Navigate to about screen
-        console.log("About")
-      },
+      onPress: () => navigation.navigate("About"),
     },
   ]
 

@@ -117,6 +117,15 @@ function ProfileStack() {
         component={HelpSupportScreen} 
         options={{ headerShown: false }} 
       />
+      <Stack.Screen 
+        name="About" 
+        component={require('../screens/AboutScreen').default} 
+        options={{ 
+          title: "About QuickMart",
+          headerStyle: { backgroundColor: "#fff" },
+          headerTintColor: "#333",
+        }} 
+      />
     </Stack.Navigator>
   )
 }
